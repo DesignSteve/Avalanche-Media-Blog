@@ -1173,6 +1173,154 @@ p {
         flex-direction: column;
         text-align: center;
     }
+    
+    /* Improved Mobile Header */
+    .header-inner {
+        padding: var(--spacing-xs) 0;
+    }
+    
+    .logo img {
+        height: 40px;
+    }
+    
+    .logo-text {
+        font-size: 1rem;
+    }
+    
+    .youtube-btn {
+        padding: 6px 10px;
+        font-size: 0.7rem;
+    }
+    
+    .youtube-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Improved Mobile Hero */
+    .hero {
+        min-height: 60vh;
+        padding-top: 80px;
+    }
+    
+    .hero-badge {
+        font-size: 0.65rem;
+        padding: 6px 12px;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-tagline {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+    
+    .hero-categories {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .hero-categories span {
+        font-size: 0.7rem;
+    }
+    
+    .hero-categories span:not(:last-child)::after {
+        display: none;
+    }
+    
+    /* Mobile Section Styling */
+    .section {
+        padding: var(--spacing-xl) 0;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .category-filter {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        flex-wrap: nowrap;
+    }
+    
+    .filter-btn {
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+    }
+    
+    /* Mobile Article Cards */
+    .article-card h3 {
+        font-size: 1rem;
+    }
+    
+    .article-excerpt {
+        font-size: 0.85rem;
+    }
+    
+    .article-image {
+        height: 180px;
+    }
+    
+    /* Mobile Sidebar */
+    .sidebar-widget {
+        padding: var(--spacing-md);
+    }
+    
+    .widget-title {
+        font-size: 0.9rem;
+    }
+    
+    /* Mobile Container */
+    .container {
+        padding: 0 var(--spacing-sm);
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 1.6rem;
+    }
+    
+    .logo-text {
+        display: none;
+    }
+    
+    .logo img {
+        height: 45px;
+    }
+    
+    .youtube-btn span {
+        display: none;
+    }
+    
+    .youtube-btn {
+        padding: 8px;
+        border-radius: 50%;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+    }
+    
+    .article-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.75rem;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
 }
 
 /* Mobile Navigation */
