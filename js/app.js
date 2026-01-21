@@ -151,7 +151,7 @@ const Utils = {
             'News': '8E24AA'
         };
         const color = colors[category] || 'E31B23';
-        return `https://via.placeholder.com/800x400/${color}/FFFFFF?text=${encodeURIComponent(category)}`;
+        return `https://placehold.co/800x400/${color}/FFFFFF?text=${encodeURIComponent(category)}`;
     }
 };
 
