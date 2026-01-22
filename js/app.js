@@ -802,7 +802,7 @@ const App = {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const emailInput = form.querySelector('input[type="email"]');
-            const email = emailInput.value;
+            const email = emailInput.value.toLowerCase().trim();
             const submitBtn = form.querySelector('button');
             
             // Disable button
@@ -810,13 +810,26 @@ const App = {
             submitBtn.textContent = 'Subscribing...';
             
             try {
-                // Save subscriber to Firebase
+                // Check if already subscribed
+                const subscribersRef = collection(db, 'subscribers');
+                const q = query(subscribersRef, where('email', '==', email));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    Utils.showToast('You are already subscribed! You will receive updates on new articles.');
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Subscribe';
+                    return;
+                }
+                
+                // Save new subscriber to Firebase
                 await addDoc(collection(db, 'subscribers'), {
                     email: email,
                     subscribedAt: new Date().toISOString()
                 });
                 
-                Utils.showToast('Thanks for subscribing! You will receive updates on new articles.');
+                Utils.showToast('🎉 Successfully subscribed! You will receive email notifications when new articles are published.');
                 form.reset();
             } catch (error) {
                 console.error('Error subscribing:', error);
@@ -908,7 +921,8 @@ const App = {
         
         try {
             const commentsRef = collection(db, 'comments');
-            const q = query(commentsRef, where('articleId', '==', articleId), orderBy('createdAt', 'desc'));
+            // Simple query without ordering to avoid index requirement
+            const q = query(commentsRef, where('articleId', '==', articleId));
             const snapshot = await getDocs(q);
             
             if (snapshot.empty) {
@@ -916,9 +930,15 @@ const App = {
                 return;
             }
             
-            let html = '';
+            // Sort comments by date in JavaScript instead
+            const comments = [];
             snapshot.forEach(doc => {
-                const comment = doc.data();
+                comments.push(doc.data());
+            });
+            comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            let html = '';
+            comments.forEach(comment => {
                 html += `
                     <div class="comment">
                         <div class="comment-header">
@@ -935,7 +955,7 @@ const App = {
             container.innerHTML = html;
         } catch (error) {
             console.error('Error loading comments:', error);
-            container.innerHTML = '<p class="no-comments">Failed to load comments.</p>';
+            container.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
         }
     }
 };
