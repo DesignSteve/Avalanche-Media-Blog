@@ -412,8 +412,14 @@ const ArticleRenderer = {
                     <h3 class="comments-title">Comments</h3>
                     
                     <form id="comment-form" class="comment-form" onsubmit="App.submitComment(event, '${article.id}')">
-                        <input type="text" name="name" placeholder="Your Name" required>
-                        <textarea name="comment" placeholder="Write a comment..." required></textarea>
+                        <input type="hidden" name="replyTo" id="reply-to" value="">
+                        <input type="hidden" name="quotedComment" id="quoted-comment" value="">
+                        <div id="reply-indicator" class="reply-indicator" style="display: none;">
+                            <span id="reply-indicator-text"></span>
+                            <button type="button" onclick="App.cancelReply()" class="cancel-reply">✕</button>
+                        </div>
+                        <input type="text" name="name" id="commenter-name" placeholder="Your Name" required>
+                        <textarea name="comment" id="comment-text" placeholder="Write a comment..." required></textarea>
                         <button type="submit" class="btn">Post Comment</button>
                     </form>
                     
@@ -896,17 +902,25 @@ const App = {
         const form = event.target;
         const name = form.querySelector('input[name="name"]').value;
         const comment = form.querySelector('textarea[name="comment"]').value;
+        const replyTo = form.querySelector('input[name="replyTo"]').value;
+        const quotedComment = form.querySelector('input[name="quotedComment"]').value;
         
         try {
             await addDoc(collection(db, 'comments'), {
                 articleId: articleId,
                 name: name,
                 comment: comment,
+                replyTo: replyTo || null,
+                quotedComment: quotedComment || null,
+                likes: 0,
                 createdAt: new Date().toISOString()
             });
             
             Utils.showToast('Comment posted!');
             form.reset();
+            document.getElementById('reply-to').value = '';
+            document.getElementById('quoted-comment').value = '';
+            document.getElementById('reply-indicator').style.display = 'none';
             this.loadComments(articleId);
         } catch (error) {
             console.error('Error posting comment:', error);
@@ -914,14 +928,116 @@ const App = {
         }
     },
     
+    // Reply to comment
+    replyToComment: function(commenterName) {
+        document.getElementById('reply-to').value = commenterName;
+        document.getElementById('reply-indicator').style.display = 'flex';
+        document.getElementById('reply-indicator-text').textContent = 'Replying to ' + commenterName;
+        document.getElementById('comment-text').placeholder = 'Reply to ' + commenterName + '...';
+        document.getElementById('comment-text').focus();
+        document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
+    },
+    
+    // Quote comment
+    quoteComment: function(commenterName, commentText) {
+        document.getElementById('reply-to').value = commenterName;
+        document.getElementById('quoted-comment').value = commentText;
+        document.getElementById('reply-indicator').style.display = 'flex';
+        document.getElementById('reply-indicator-text').textContent = 'Quoting ' + commenterName;
+        document.getElementById('comment-text').placeholder = 'Your reply to the quote...';
+        document.getElementById('comment-text').focus();
+        document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
+    },
+    
+    // Cancel reply
+    cancelReply: function() {
+        document.getElementById('reply-to').value = '';
+        document.getElementById('quoted-comment').value = '';
+        document.getElementById('reply-indicator').style.display = 'none';
+        document.getElementById('comment-text').placeholder = 'Write a comment...';
+    },
+    
+    // Like comment
+    likeComment: async function(commentId, articleId) {
+        try {
+            const likedComments = JSON.parse(localStorage.getItem('likedComments') || '[]');
+            
+            if (likedComments.includes(commentId)) {
+                Utils.showToast('You already liked this comment!');
+                return;
+            }
+            
+            const commentRef = doc(db, 'comments', commentId);
+            await updateDoc(commentRef, {
+                likes: increment(1)
+            });
+            
+            likedComments.push(commentId);
+            localStorage.setItem('likedComments', JSON.stringify(likedComments));
+            
+            Utils.showToast('Comment liked!');
+            this.loadComments(articleId);
+        } catch (error) {
+            console.error('Error liking comment:', error);
+            Utils.showToast('Failed to like comment', 'error');
+        }
+    },
+    
+    // Edit comment
+    editComment: function(commentId, articleId, currentText, commenterName) {
+        const newText = prompt('Edit your comment:', currentText);
+        if (newText && newText.trim() !== '' && newText !== currentText) {
+            this.updateComment(commentId, articleId, newText.trim(), commenterName);
+        }
+    },
+    
+    // Update comment in Firebase
+    updateComment: async function(commentId, articleId, newText, commenterName) {
+        try {
+            const commentRef = doc(db, 'comments', commentId);
+            await updateDoc(commentRef, {
+                comment: newText,
+                edited: true,
+                editedAt: new Date().toISOString()
+            });
+            
+            Utils.showToast('Comment updated!');
+            this.loadComments(articleId);
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            Utils.showToast('Failed to update comment', 'error');
+        }
+    },
+    
+    // Delete comment
+    deleteComment: async function(commentId, articleId) {
+        if (confirm('Are you sure you want to delete this comment?')) {
+            try {
+                const commentRef = doc(db, 'comments', commentId);
+                await deleteDoc(commentRef);
+                
+                Utils.showToast('Comment deleted!');
+                this.loadComments(articleId);
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                Utils.showToast('Failed to delete comment', 'error');
+            }
+        }
+    },
+    
+    // Store current article ID for comment functions
+    currentArticleId: null,
+    
     // Load comments
-    async loadComments(articleId) {
+    loadComments: async function(articleId) {
         const container = document.getElementById('comments-list');
         if (!container) return;
         
+        // Store article ID for use in other functions
+        this.currentArticleId = articleId;
+        
         try {
             const commentsRef = collection(db, 'comments');
-            // Simple query without ordering to avoid index requirement
             const q = query(commentsRef, where('articleId', '==', articleId));
             const snapshot = await getDocs(q);
             
@@ -930,33 +1046,95 @@ const App = {
                 return;
             }
             
-            // Sort comments by date in JavaScript instead
             const comments = [];
-            snapshot.forEach(doc => {
-                comments.push(doc.data());
+            snapshot.forEach(docSnap => {
+                comments.push({ id: docSnap.id, ...docSnap.data() });
             });
             comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
+            const likedComments = JSON.parse(localStorage.getItem('likedComments') || '[]');
+            
             let html = '';
-            comments.forEach(comment => {
-                html += `
-                    <div class="comment">
-                        <div class="comment-header">
-                            <img src="images/logo.png" alt="${comment.name}" class="comment-avatar">
-                            <div class="comment-info">
-                                <strong class="comment-author">${comment.name}</strong>
-                                <span class="comment-date">${Utils.formatDate(comment.createdAt)}</span>
-                            </div>
-                        </div>
-                        <p class="comment-text">${comment.comment}</p>
-                    </div>
-                `;
+            comments.forEach((comment, index) => {
+                const isLiked = likedComments.includes(comment.id);
+                const commentIndex = index;
+                
+                html += '<div class="comment" data-comment-id="' + comment.id + '" data-index="' + commentIndex + '">';
+                html += '<div class="comment-header">';
+                html += '<img src="images/logo.png" alt="' + comment.name + '" class="comment-avatar">';
+                html += '<div class="comment-info">';
+                html += '<strong class="comment-author">' + comment.name + '</strong>';
+                html += '<span class="comment-date">' + Utils.formatDate(comment.createdAt);
+                if (comment.edited) {
+                    html += ' (edited)';
+                }
+                html += '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                if (comment.quotedComment) {
+                    html += '<div class="quoted-comment">';
+                    html += '<span class="quoted-label">Quoting ' + comment.replyTo + ':</span>';
+                    html += '<p>' + comment.quotedComment + '</p>';
+                    html += '</div>';
+                } else if (comment.replyTo) {
+                    html += '<span class="reply-to-label">↩ Replying to ' + comment.replyTo + '</span>';
+                }
+                
+                html += '<p class="comment-text" id="comment-text-' + commentIndex + '">' + comment.comment + '</p>';
+                
+                html += '<div class="comment-actions">';
+                html += '<button class="comment-action-btn" data-action="reply" data-name="' + comment.name + '">Reply</button>';
+                html += '<button class="comment-action-btn" data-action="quote" data-name="' + comment.name + '" data-index="' + commentIndex + '">Quote</button>';
+                html += '<button class="comment-action-btn ' + (isLiked ? 'liked' : '') + '" data-action="like" data-id="' + comment.id + '">';
+                html += '<span>❤</span> ' + (comment.likes || 0);
+                html += '</button>';
+                html += '<button class="comment-action-btn" data-action="edit" data-id="' + comment.id + '" data-index="' + commentIndex + '" data-name="' + comment.name + '">Edit</button>';
+                html += '<button class="comment-action-btn delete-btn" data-action="delete" data-id="' + comment.id + '">Delete</button>';
+                html += '</div>';
+                html += '</div>';
             });
+            
             container.innerHTML = html;
+            
+            // Add event listeners to all buttons
+            this.attachCommentEventListeners(articleId);
+            
         } catch (error) {
             console.error('Error loading comments:', error);
             container.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
         }
+    },
+    
+    // Attach event listeners to comment action buttons
+    attachCommentEventListeners: function(articleId) {
+        const buttons = document.querySelectorAll('.comment-action-btn');
+        const self = this;
+        
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const commentId = this.getAttribute('data-id');
+                const commenterName = this.getAttribute('data-name');
+                const commentIndex = this.getAttribute('data-index');
+                
+                if (action === 'reply') {
+                    self.replyToComment(commenterName);
+                } else if (action === 'quote') {
+                    const commentTextEl = document.getElementById('comment-text-' + commentIndex);
+                    const commentText = commentTextEl ? commentTextEl.textContent : '';
+                    self.quoteComment(commenterName, commentText);
+                } else if (action === 'like') {
+                    self.likeComment(commentId, articleId);
+                } else if (action === 'edit') {
+                    const commentTextEl = document.getElementById('comment-text-' + commentIndex);
+                    const currentText = commentTextEl ? commentTextEl.textContent : '';
+                    self.editComment(commentId, articleId, currentText, commenterName);
+                } else if (action === 'delete') {
+                    self.deleteComment(commentId, articleId);
+                }
+            });
+        });
     }
 };
 

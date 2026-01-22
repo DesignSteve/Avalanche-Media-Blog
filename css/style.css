@@ -16,19 +16,19 @@
     --gold-light: #B8960B;
     --gold-dark: #6B5A00;
     
-    /* Nairaland-style Light Theme */
-    --black: #E8E8D8;
-    --dark-gray: #DEDED0;
-    --medium-gray: #D0D0C0;
-    --light-gray: #C8C8B8;
-    --text-primary: #1a1a1a;
-    --text-secondary: #3a3a3a;
-    --text-muted: #5a5a5a;
+    /* Light Theme - Lighter background, darker text */
+    --black: #F2F2E8;
+    --dark-gray: #EAEAE0;
+    --medium-gray: #E0E0D6;
+    --light-gray: #D8D8CE;
+    --text-primary: #111111;
+    --text-secondary: #222222;
+    --text-muted: #444444;
     
     /* Gradients */
     --gradient-accent: linear-gradient(135deg, #8B0000 0%, #B8860B 50%, #8B4513 100%);
     --gradient-dark: linear-gradient(180deg, var(--black) 0%, var(--dark-gray) 100%);
-    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F5F5E8 100%);
+    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8F8F0 100%);
     
     /* Typography */
     --font-display: 'Oswald', sans-serif;
@@ -1636,6 +1636,116 @@ p {
     border: 1px solid #d4d4bc;
 }
 
+/* Reply Indicator */
+.reply-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #e8f4e8;
+    border: 1px solid #4a7c4a;
+    border-radius: var(--border-radius);
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    color: #2d5a2d;
+    font-size: 0.9rem;
+}
+
+.cancel-reply {
+    background: none;
+    border: none;
+    color: #8B0000;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.cancel-reply:hover {
+    color: #6B0000;
+}
+
+/* Quoted Comment */
+.quoted-comment {
+    background: #f0f0e0;
+    border-left: 4px solid #8B7500;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.quoted-label {
+    font-size: 0.8rem;
+    color: #8B7500;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.quoted-comment p {
+    margin: 0;
+    color: #5a5a5a;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Reply To Label */
+.reply-to-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #8B0000;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+/* Comment Actions */
+.comment-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e5cd;
+}
+
+.comment-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid #d4d4bc;
+    color: #5a5a5a;
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.comment-action-btn:hover {
+    background: #f5f5e8;
+    border-color: #8B0000;
+    color: #8B0000;
+}
+
+.comment-action-btn.liked {
+    background: #ffe6e6;
+    border-color: #8B0000;
+    color: #8B0000;
+}
+
+.comment-action-btn.delete-btn {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.comment-action-btn.delete-btn:hover {
+    background: #dc3545;
+    color: #FFFFFF;
+}
+
+.comment-action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
 /* Mobile responsive for share buttons */
 @media (max-width: 480px) {
     .share-buttons {
@@ -1645,5 +1755,16 @@ p {
     .share-btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    .comment-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .comment-action-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 80px;
     }
 }
