@@ -929,26 +929,28 @@ const App = {
     },
     
     // Reply to comment
-    replyToComment(commenterName) {
+    replyToComment: function(commenterName) {
         document.getElementById('reply-to').value = commenterName;
         document.getElementById('reply-indicator').style.display = 'flex';
-        document.getElementById('reply-indicator-text').textContent = `Replying to ${commenterName}`;
-        document.getElementById('comment-text').placeholder = `Reply to ${commenterName}...`;
+        document.getElementById('reply-indicator-text').textContent = 'Replying to ' + commenterName;
+        document.getElementById('comment-text').placeholder = 'Reply to ' + commenterName + '...';
         document.getElementById('comment-text').focus();
+        document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
     },
     
     // Quote comment
-    quoteComment(commenterName, commentText) {
+    quoteComment: function(commenterName, commentText) {
         document.getElementById('reply-to').value = commenterName;
         document.getElementById('quoted-comment').value = commentText;
         document.getElementById('reply-indicator').style.display = 'flex';
-        document.getElementById('reply-indicator-text').textContent = `Quoting ${commenterName}`;
-        document.getElementById('comment-text').placeholder = `Your reply to the quote...`;
+        document.getElementById('reply-indicator-text').textContent = 'Quoting ' + commenterName;
+        document.getElementById('comment-text').placeholder = 'Your reply to the quote...';
         document.getElementById('comment-text').focus();
+        document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
     },
     
     // Cancel reply
-    cancelReply() {
+    cancelReply: function() {
         document.getElementById('reply-to').value = '';
         document.getElementById('quoted-comment').value = '';
         document.getElementById('reply-indicator').style.display = 'none';
@@ -956,9 +958,8 @@ const App = {
     },
     
     // Like comment
-    async likeComment(commentId, articleId) {
+    likeComment: async function(commentId, articleId) {
         try {
-            // Check if already liked (using localStorage)
             const likedComments = JSON.parse(localStorage.getItem('likedComments') || '[]');
             
             if (likedComments.includes(commentId)) {
@@ -966,13 +967,11 @@ const App = {
                 return;
             }
             
-            // Update in Firebase
             const commentRef = doc(db, 'comments', commentId);
             await updateDoc(commentRef, {
                 likes: increment(1)
             });
             
-            // Save to localStorage
             likedComments.push(commentId);
             localStorage.setItem('likedComments', JSON.stringify(likedComments));
             
@@ -984,14 +983,61 @@ const App = {
         }
     },
     
+    // Edit comment
+    editComment: function(commentId, articleId, currentText, commenterName) {
+        const newText = prompt('Edit your comment:', currentText);
+        if (newText && newText.trim() !== '' && newText !== currentText) {
+            this.updateComment(commentId, articleId, newText.trim(), commenterName);
+        }
+    },
+    
+    // Update comment in Firebase
+    updateComment: async function(commentId, articleId, newText, commenterName) {
+        try {
+            const commentRef = doc(db, 'comments', commentId);
+            await updateDoc(commentRef, {
+                comment: newText,
+                edited: true,
+                editedAt: new Date().toISOString()
+            });
+            
+            Utils.showToast('Comment updated!');
+            this.loadComments(articleId);
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            Utils.showToast('Failed to update comment', 'error');
+        }
+    },
+    
+    // Delete comment
+    deleteComment: async function(commentId, articleId) {
+        if (confirm('Are you sure you want to delete this comment?')) {
+            try {
+                const commentRef = doc(db, 'comments', commentId);
+                await deleteDoc(commentRef);
+                
+                Utils.showToast('Comment deleted!');
+                this.loadComments(articleId);
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                Utils.showToast('Failed to delete comment', 'error');
+            }
+        }
+    },
+    
+    // Store current article ID for comment functions
+    currentArticleId: null,
+    
     // Load comments
-    async loadComments(articleId) {
+    loadComments: async function(articleId) {
         const container = document.getElementById('comments-list');
         if (!container) return;
         
+        // Store article ID for use in other functions
+        this.currentArticleId = articleId;
+        
         try {
             const commentsRef = collection(db, 'comments');
-            // Simple query without ordering to avoid index requirement
             const q = query(commentsRef, where('articleId', '==', articleId));
             const snapshot = await getDocs(q);
             
@@ -1000,63 +1046,95 @@ const App = {
                 return;
             }
             
-            // Sort comments by date in JavaScript instead
             const comments = [];
             snapshot.forEach(docSnap => {
                 comments.push({ id: docSnap.id, ...docSnap.data() });
             });
             comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
-            // Check which comments user has liked
             const likedComments = JSON.parse(localStorage.getItem('likedComments') || '[]');
             
             let html = '';
-            comments.forEach(comment => {
+            comments.forEach((comment, index) => {
                 const isLiked = likedComments.includes(comment.id);
-                const escapedComment = comment.comment.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const escapedName = comment.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const commentIndex = index;
                 
-                html += `
-                    <div class="comment">
-                        <div class="comment-header">
-                            <img src="images/logo.png" alt="${comment.name}" class="comment-avatar">
-                            <div class="comment-info">
-                                <strong class="comment-author">${comment.name}</strong>
-                                <span class="comment-date">${Utils.formatDate(comment.createdAt)}</span>
-                            </div>
-                        </div>
-                        ${comment.quotedComment ? `
-                            <div class="quoted-comment">
-                                <span class="quoted-label">Quoting ${comment.replyTo}:</span>
-                                <p>${comment.quotedComment}</p>
-                            </div>
-                        ` : ''}
-                        ${comment.replyTo && !comment.quotedComment ? `
-                            <span class="reply-to-label">↩ Replying to ${comment.replyTo}</span>
-                        ` : ''}
-                        <p class="comment-text">${comment.comment}</p>
-                        <div class="comment-actions">
-                            <button onclick="App.replyToComment('${escapedName}')" class="comment-action-btn">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                                Reply
-                            </button>
-                            <button onclick="App.quoteComment('${escapedName}', '${escapedComment}')" class="comment-action-btn">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                                Quote
-                            </button>
-                            <button onclick="App.likeComment('${comment.id}', '${articleId}')" class="comment-action-btn ${isLiked ? 'liked' : ''}">
-                                <svg viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                <span>${comment.likes || 0}</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
+                html += '<div class="comment" data-comment-id="' + comment.id + '" data-index="' + commentIndex + '">';
+                html += '<div class="comment-header">';
+                html += '<img src="images/logo.png" alt="' + comment.name + '" class="comment-avatar">';
+                html += '<div class="comment-info">';
+                html += '<strong class="comment-author">' + comment.name + '</strong>';
+                html += '<span class="comment-date">' + Utils.formatDate(comment.createdAt);
+                if (comment.edited) {
+                    html += ' (edited)';
+                }
+                html += '</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                if (comment.quotedComment) {
+                    html += '<div class="quoted-comment">';
+                    html += '<span class="quoted-label">Quoting ' + comment.replyTo + ':</span>';
+                    html += '<p>' + comment.quotedComment + '</p>';
+                    html += '</div>';
+                } else if (comment.replyTo) {
+                    html += '<span class="reply-to-label">↩ Replying to ' + comment.replyTo + '</span>';
+                }
+                
+                html += '<p class="comment-text" id="comment-text-' + commentIndex + '">' + comment.comment + '</p>';
+                
+                html += '<div class="comment-actions">';
+                html += '<button class="comment-action-btn" data-action="reply" data-name="' + comment.name + '">Reply</button>';
+                html += '<button class="comment-action-btn" data-action="quote" data-name="' + comment.name + '" data-index="' + commentIndex + '">Quote</button>';
+                html += '<button class="comment-action-btn ' + (isLiked ? 'liked' : '') + '" data-action="like" data-id="' + comment.id + '">';
+                html += '<span>❤</span> ' + (comment.likes || 0);
+                html += '</button>';
+                html += '<button class="comment-action-btn" data-action="edit" data-id="' + comment.id + '" data-index="' + commentIndex + '" data-name="' + comment.name + '">Edit</button>';
+                html += '<button class="comment-action-btn delete-btn" data-action="delete" data-id="' + comment.id + '">Delete</button>';
+                html += '</div>';
+                html += '</div>';
             });
+            
             container.innerHTML = html;
+            
+            // Add event listeners to all buttons
+            this.attachCommentEventListeners(articleId);
+            
         } catch (error) {
             console.error('Error loading comments:', error);
             container.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
         }
+    },
+    
+    // Attach event listeners to comment action buttons
+    attachCommentEventListeners: function(articleId) {
+        const buttons = document.querySelectorAll('.comment-action-btn');
+        const self = this;
+        
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.getAttribute('data-action');
+                const commentId = this.getAttribute('data-id');
+                const commenterName = this.getAttribute('data-name');
+                const commentIndex = this.getAttribute('data-index');
+                
+                if (action === 'reply') {
+                    self.replyToComment(commenterName);
+                } else if (action === 'quote') {
+                    const commentTextEl = document.getElementById('comment-text-' + commentIndex);
+                    const commentText = commentTextEl ? commentTextEl.textContent : '';
+                    self.quoteComment(commenterName, commentText);
+                } else if (action === 'like') {
+                    self.likeComment(commentId, articleId);
+                } else if (action === 'edit') {
+                    const commentTextEl = document.getElementById('comment-text-' + commentIndex);
+                    const currentText = commentTextEl ? commentTextEl.textContent : '';
+                    self.editComment(commentId, articleId, currentText, commenterName);
+                } else if (action === 'delete') {
+                    self.deleteComment(commentId, articleId);
+                }
+            });
+        });
     }
 };
 

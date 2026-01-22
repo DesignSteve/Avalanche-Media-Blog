@@ -16,19 +16,19 @@
     --gold-light: #B8960B;
     --gold-dark: #6B5A00;
     
-    /* Nairaland-style Light Theme */
-    --black: #E8E8D8;
-    --dark-gray: #DEDED0;
-    --medium-gray: #D0D0C0;
-    --light-gray: #C8C8B8;
-    --text-primary: #1a1a1a;
-    --text-secondary: #3a3a3a;
-    --text-muted: #5a5a5a;
+    /* Light Theme - Lighter background, darker text */
+    --black: #F2F2E8;
+    --dark-gray: #EAEAE0;
+    --medium-gray: #E0E0D6;
+    --light-gray: #D8D8CE;
+    --text-primary: #111111;
+    --text-secondary: #222222;
+    --text-muted: #444444;
     
     /* Gradients */
     --gradient-accent: linear-gradient(135deg, #8B0000 0%, #B8860B 50%, #8B4513 100%);
     --gradient-dark: linear-gradient(180deg, var(--black) 0%, var(--dark-gray) 100%);
-    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F5F5E8 100%);
+    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8F8F0 100%);
     
     /* Typography */
     --font-display: 'Oswald', sans-serif;
@@ -1729,6 +1729,16 @@ p {
     background: #ffe6e6;
     border-color: #8B0000;
     color: #8B0000;
+}
+
+.comment-action-btn.delete-btn {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.comment-action-btn.delete-btn:hover {
+    background: #dc3545;
+    color: #FFFFFF;
 }
 
 .comment-action-btn svg {
