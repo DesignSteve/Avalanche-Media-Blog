@@ -7,6 +7,17 @@
     <meta name="keywords" content="politics, news, commentary, analysis, political happenings">
     <meta name="author" content="Avalanche Media">
     
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#8B0000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Avalanche Media">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="images/icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon-192.png">
+    
     <!-- Open Graph -->
     <meta property="og:title" content="Avalanche Media">
     <meta property="og:description" content="Political Commentary | Review | Analysis | Political Happenings">
@@ -260,5 +271,20 @@
 
     <!-- Scripts -->
     <script type="module" src="js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
