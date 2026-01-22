@@ -13,6 +13,121 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Login Page Styles */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--black);
+        }
+        
+        .login-box {
+            background: #FFFFFF;
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid #d4d4bc;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .login-logo h1 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: #1a1a1a;
+        }
+        
+        .login-logo h1 span {
+            color: #8B0000;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d4d4bc;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: #FFFFFF;
+            color: #1a1a1a;
+        }
+        
+        .login-form input:focus {
+            outline: none;
+            border-color: #8B0000;
+        }
+        
+        .login-form button {
+            width: 100%;
+            padding: 14px;
+            background: #8B0000;
+            color: #FFFFFF;
+            border: none;
+            border-radius: var(--border-radius);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-form button:hover {
+            background: #6B0000;
+        }
+        
+        .login-error {
+            background: #ffe6e6;
+            color: #8B0000;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: #FFFFFF;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            margin-left: 15px;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        /* Hide admin content initially */
+        .admin-container {
+            display: none;
+        }
+
         /* Additional Admin Styles */
         .admin-panel {
             display: none;
@@ -126,8 +241,37 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <!-- Login Page -->
+    <div class="login-container" id="login-page">
+        <div class="login-box">
+            <div class="login-logo">
+                <img src="images/logo.png" alt="Avalanche Media">
+                <h1><span>AVALANCHE</span> MEDIA</h1>
+                <p style="color: #5a5a5a; margin-top: 5px;">Admin Panel</p>
+            </div>
+            
+            <div class="login-error" id="login-error">
+                Invalid username or password
+            </div>
+            
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter password">
+                </div>
+                
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Header (Hidden until logged in) -->
+    <header class="header" id="admin-header" style="display: none;">
         <div class="container">
             <div class="header-inner">
                 <a href="index.html" class="logo">
@@ -151,6 +295,8 @@
                         </svg>
                         YouTube
                     </a>
+                    
+                    <button class="logout-btn" onclick="logout()">Logout</button>
                 </nav>
                 
                 <button class="menu-toggle" aria-label="Toggle menu">
@@ -162,8 +308,8 @@
         </div>
     </header>
 
-    <!-- Admin Container -->
-    <div class="admin-container">
+    <!-- Admin Container (Hidden until logged in) -->
+    <div class="admin-container" id="admin-content">
         <div class="admin-header">
             <div class="container">
                 <h1>Admin <span style="color: var(--primary-red);">Panel</span></h1>
@@ -355,8 +501,57 @@ You can use simple formatting:
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="js/app.js"></script>
-    <script type="module">
+    <script>
+        // ============================================
+        // ADMIN LOGIN SYSTEM
+        // ============================================
+        
+        // Your admin credentials (change these!)
+        const ADMIN_USERNAME = 'avalanche88';
+        const ADMIN_PASSWORD = 'Chelsea247';
+        
+        // Check if already logged in
+        function checkLogin() {
+            const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (isLoggedIn === 'true') {
+                showAdminPanel();
+            }
+        }
+        
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('login-error').style.display = 'none';
+                }, 3000);
+            }
+        });
+        
+        // Show admin panel after successful login
+        function showAdminPanel() {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('admin-header').style.display = 'block';
+            document.getElementById('admin-content').style.display = 'block';
+        }
+        
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('adminLoggedIn');
+            location.reload();
+        }
+        
+        // Check login on page load
+        checkLogin();
+        
         // Editor formatting helper
         function insertFormat(before, after) {
             const textarea = document.getElementById('content');
@@ -380,48 +575,7 @@ You can use simple formatting:
                 preview.innerHTML = '';
             }
         });
-        
-        // Load dashboard stats
-        function loadDashboardStats() {
-            const articles = DB.getArticles();
-            const totalViews = articles.reduce((sum, a) => sum + (a.views || 0), 0);
-            
-            // Articles this month
-            const now = new Date();
-            const thisMonth = articles.filter(a => {
-                const date = new Date(a.createdAt);
-                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-            }).length;
-            
-            document.getElementById('stat-total').textContent = articles.length;
-            document.getElementById('stat-views').textContent = totalViews;
-            document.getElementById('stat-month').textContent = thisMonth;
-            
-            // Recent articles
-            const recentContainer = document.getElementById('recent-articles-admin');
-            if (recentContainer && articles.length > 0) {
-                const recent = articles.slice(0, 5);
-                let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-                recent.forEach(article => {
-                    html += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--dark-gray); border-radius: var(--border-radius); border: 1px solid rgba(255,255,255,0.05);">
-                            <div>
-                                <h4 style="font-size: 0.95rem; margin-bottom: 5px;">${article.title}</h4>
-                                <span style="font-size: 0.8rem; color: var(--text-muted);">${Utils.formatDate(article.createdAt)}</span>
-                            </div>
-                            <span class="article-category" style="position: static;">${article.category}</span>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                recentContainer.innerHTML = html;
-            } else if (recentContainer) {
-                recentContainer.innerHTML = '<p style="color: var(--text-muted);">No articles yet. Create your first article!</p>';
-            }
-        }
-        
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', loadDashboardStats);
     </script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

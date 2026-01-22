@@ -230,7 +230,7 @@ const ArticleRenderer = {
                         <p class="article-excerpt">${Utils.truncate(article.excerpt || article.content, 200)}</p>
                         <div class="article-footer">
                             <div class="article-author">
-                                <div class="author-avatar">AM</div>
+                                <img src="images/logo.png" alt="Avalanche Media" class="author-avatar-img">
                                 <span class="author-name">${article.author || 'Avalanche Media'}</span>
                             </div>
                             <a href="article.html?slug=${article.slug}" class="read-more">
@@ -275,7 +275,7 @@ const ArticleRenderer = {
                     <p class="article-excerpt">${Utils.truncate(article.excerpt || article.content, 120)}</p>
                     <div class="article-footer">
                         <div class="article-author">
-                            <div class="author-avatar">AM</div>
+                            <img src="images/logo.png" alt="Avalanche Media" class="author-avatar-img">
                             <span class="author-name">${article.author || 'Avalanche Media'}</span>
                         </div>
                         <a href="article.html?slug=${article.slug}" class="read-more">
@@ -318,6 +318,8 @@ const ArticleRenderer = {
         
         const readTime = Utils.calculateReadTime(article.content || '');
         const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
+        const articleUrl = encodeURIComponent(window.location.href);
+        const articleTitle = encodeURIComponent(article.title);
         
         // Convert markdown-like content to HTML
         let htmlContent = article.content
@@ -369,10 +371,64 @@ const ArticleRenderer = {
             <div class="article-body">
                 ${htmlContent}
             </div>
+            
+            <!-- Social Sharing Section -->
+            <div class="article-actions">
+                <div class="container">
+                    <div class="share-section">
+                        <h4>Share this article</h4>
+                        <div class="share-buttons">
+                            <a href="https://wa.me/?text=${articleTitle}%20${articleUrl}" target="_blank" class="share-btn whatsapp" title="Share on WhatsApp">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                WhatsApp
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?url=${articleUrl}&text=${articleTitle}" target="_blank" class="share-btn twitter" title="Share on Twitter">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                Twitter
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=${articleUrl}" target="_blank" class="share-btn facebook" title="Share on Facebook">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                Facebook
+                            </a>
+                            <button onclick="App.copyLink()" class="share-btn copy-link" title="Copy Link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                Copy Link
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="like-section">
+                        <button onclick="App.likeArticle('${article.id}')" class="like-btn" id="like-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <span id="like-count">${article.likes || 0}</span> Likes
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <div class="container">
+                    <h3 class="comments-title">Comments</h3>
+                    
+                    <form id="comment-form" class="comment-form" onsubmit="App.submitComment(event, '${article.id}')">
+                        <input type="text" name="name" placeholder="Your Name" required>
+                        <textarea name="comment" placeholder="Write a comment..." required></textarea>
+                        <button type="submit" class="btn">Post Comment</button>
+                    </form>
+                    
+                    <div id="comments-list" class="comments-list">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                </div>
+            </div>
         `;
 
         // Update page title
         document.title = `${article.title} | Avalanche Media`;
+        
+        // Load comments
+        App.loadComments(article.id);
     },
 
     // Render popular posts widget
@@ -491,8 +547,11 @@ const Admin = {
             Utils.showToast('Article updated successfully!');
             delete form.dataset.editId;
         } else {
-            await DB.addArticle(article);
+            const newArticle = await DB.addArticle(article);
             Utils.showToast('Article published successfully!');
+            
+            // Send email notifications to subscribers
+            await this.notifySubscribers(article);
         }
 
         form.reset();
@@ -510,6 +569,91 @@ const Admin = {
         
         // Switch to articles tab
         document.querySelector('[data-tab="articles"]')?.click();
+    },
+    
+    // Send email notifications to all subscribers using Brevo
+    async notifySubscribers(article) {
+        try {
+            // Get all subscribers from Firebase
+            const subscribersRef = collection(db, 'subscribers');
+            const snapshot = await getDocs(subscribersRef);
+            
+            if (snapshot.empty) {
+                console.log('No subscribers to notify');
+                return;
+            }
+            
+            const articleLink = `https://designsteve.github.io/Avalanche-Media-Blog/article.html?slug=${article.slug}`;
+            
+            // Collect all subscriber emails
+            const subscribers = [];
+            snapshot.forEach((doc) => {
+                const subscriber = doc.data();
+                subscribers.push({ email: subscriber.email });
+            });
+            
+            // Send email via Brevo API
+            const emailData = {
+                sender: {
+                    name: "Avalanche Media",
+                    email: "avalanchemedia2022@gmail.com"
+                },
+                to: subscribers,
+                subject: `New Article from Avalanche Media: ${article.title}`,
+                htmlContent: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #8B0000; margin: 0;">AVALANCHE MEDIA</h1>
+                            <p style="color: #666; margin: 5px 0;">Political Commentary | Review | Analysis</p>
+                        </div>
+                        
+                        <h2 style="color: #1a1a1a;">New Article Published!</h2>
+                        
+                        <div style="background: #f5f5dc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="color: #8B0000; margin-top: 0;">${article.title}</h3>
+                            <p style="color: #3a3a3a; line-height: 1.6;">${article.excerpt || article.content.substring(0, 200) + '...'}</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${articleLink}" style="background: #8B0000; color: #FFFFFF; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Read Full Article</a>
+                        </div>
+                        
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                        
+                        <div style="text-align: center; color: #666; font-size: 12px;">
+                            <p>Avalanche Media - Your trusted source for political insight</p>
+                            <p>
+                                <a href="https://www.youtube.com/@avalanchemedia" style="color: #8B0000;">YouTube</a> | 
+                                <a href="https://www.facebook.com/share/1FvBysr7xz/" style="color: #8B0000;">Facebook</a>
+                            </p>
+                            <p style="margin-top: 15px;">To unsubscribe, reply to this email with "UNSUBSCRIBE"</p>
+                        </div>
+                    </div>
+                `
+            };
+            
+            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'api-key': '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'
+                },
+                body: JSON.stringify(emailData)
+            });
+            
+            if (response.ok) {
+                Utils.showToast(`Email sent to ${subscribers.length} subscriber(s)!`);
+                console.log('Emails sent successfully');
+            } else {
+                const error = await response.json();
+                console.error('Brevo API error:', error);
+                Utils.showToast('Failed to send some emails', 'error');
+            }
+        } catch (error) {
+            console.error('Error notifying subscribers:', error);
+            Utils.showToast('Error sending notifications', 'error');
+        }
     },
 
     // Edit article
@@ -650,24 +794,149 @@ const App = {
         });
     },
 
-    // Setup newsletter form
+    // Setup newsletter form with EmailJS
     setupNewsletter() {
         const form = document.querySelector('.newsletter-form');
         if (!form) return;
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = form.querySelector('input[type="email"]').value;
+            const emailInput = form.querySelector('input[type="email"]');
+            const email = emailInput.value;
+            const submitBtn = form.querySelector('button');
             
-            // In a real app, this would send to a backend
-            Utils.showToast('Thanks for subscribing!');
-            form.reset();
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Subscribing...';
+            
+            try {
+                // Save subscriber to Firebase
+                await addDoc(collection(db, 'subscribers'), {
+                    email: email,
+                    subscribedAt: new Date().toISOString()
+                });
+                
+                Utils.showToast('Thanks for subscribing! You will receive updates on new articles.');
+                form.reset();
+            } catch (error) {
+                console.error('Error subscribing:', error);
+                Utils.showToast('Failed to subscribe. Please try again.', 'error');
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Subscribe';
         });
     },
 
     // Navigate to article
     viewArticle(slug) {
         window.location.href = `article.html?slug=${slug}`;
+    },
+    
+    // Copy link to clipboard
+    copyLink() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            Utils.showToast('Link copied to clipboard!');
+        }).catch(() => {
+            Utils.showToast('Failed to copy link', 'error');
+        });
+    },
+    
+    // Like article
+    async likeArticle(articleId) {
+        try {
+            const likeBtn = document.getElementById('like-btn');
+            const likeCount = document.getElementById('like-count');
+            
+            // Check if already liked (using localStorage)
+            const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '[]');
+            
+            if (likedArticles.includes(articleId)) {
+                Utils.showToast('You already liked this article!');
+                return;
+            }
+            
+            // Update in Firebase
+            const articleRef = doc(db, 'articles', articleId);
+            await updateDoc(articleRef, {
+                likes: increment(1)
+            });
+            
+            // Save to localStorage
+            likedArticles.push(articleId);
+            localStorage.setItem('likedArticles', JSON.stringify(likedArticles));
+            
+            // Update UI
+            likeBtn.classList.add('liked');
+            likeCount.textContent = parseInt(likeCount.textContent) + 1;
+            Utils.showToast('Thanks for the like!');
+        } catch (error) {
+            console.error('Error liking article:', error);
+            Utils.showToast('Failed to like article', 'error');
+        }
+    },
+    
+    // Submit comment
+    async submitComment(event, articleId) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const name = form.querySelector('input[name="name"]').value;
+        const comment = form.querySelector('textarea[name="comment"]').value;
+        
+        try {
+            await addDoc(collection(db, 'comments'), {
+                articleId: articleId,
+                name: name,
+                comment: comment,
+                createdAt: new Date().toISOString()
+            });
+            
+            Utils.showToast('Comment posted!');
+            form.reset();
+            this.loadComments(articleId);
+        } catch (error) {
+            console.error('Error posting comment:', error);
+            Utils.showToast('Failed to post comment', 'error');
+        }
+    },
+    
+    // Load comments
+    async loadComments(articleId) {
+        const container = document.getElementById('comments-list');
+        if (!container) return;
+        
+        try {
+            const commentsRef = collection(db, 'comments');
+            const q = query(commentsRef, where('articleId', '==', articleId), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+                return;
+            }
+            
+            let html = '';
+            snapshot.forEach(doc => {
+                const comment = doc.data();
+                html += `
+                    <div class="comment">
+                        <div class="comment-header">
+                            <img src="images/logo.png" alt="${comment.name}" class="comment-avatar">
+                            <div class="comment-info">
+                                <strong class="comment-author">${comment.name}</strong>
+                                <span class="comment-date">${Utils.formatDate(comment.createdAt)}</span>
+                            </div>
+                        </div>
+                        <p class="comment-text">${comment.comment}</p>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            container.innerHTML = '<p class="no-comments">Failed to load comments.</p>';
+        }
     }
 };
 
