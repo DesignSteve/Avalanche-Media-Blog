@@ -3,8 +3,8 @@
    Political Commentary | Review | Analysis
    ============================================ */
 
-/* Google Fonts Import */
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+/* Google Fonts Import - Single Font Family */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
 
 /* CSS Custom Properties */
 :root {
@@ -17,8 +17,8 @@
     --gold-dark: #6B5A00;
     
     /* Light Theme - Lighter background, darker text */
-    --black: #F2F2E8;
-    --dark-gray: #EAEAE0;
+    --black: #F5F5EB;
+    --dark-gray: #EDEDDF;
     --medium-gray: #E0E0D6;
     --light-gray: #D8D8CE;
     --text-primary: #111111;
@@ -28,12 +28,12 @@
     /* Gradients */
     --gradient-accent: linear-gradient(135deg, #8B0000 0%, #B8860B 50%, #8B4513 100%);
     --gradient-dark: linear-gradient(180deg, var(--black) 0%, var(--dark-gray) 100%);
-    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8F8F0 100%);
+    --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #FAFAF5 100%);
     
-    /* Typography */
+    /* Typography - Single Font */
     --font-display: 'Oswald', sans-serif;
-    --font-body: 'Source Sans Pro', sans-serif;
-    --font-accent: 'Playfair Display', serif;
+    --font-body: 'Oswald', sans-serif;
+    --font-accent: 'Oswald', sans-serif;
     
     /* Spacing */
     --spacing-xs: 0.5rem;
@@ -46,10 +46,11 @@
     /* Borders & Shadows */
     --border-radius: 4px;
     --border-radius-lg: 8px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.15);
     --shadow-glow: 0 0 30px rgba(139, 0, 0, 0.2);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
     
     /* Transitions */
     --transition-fast: 0.15s ease;
@@ -74,11 +75,13 @@ body {
     font-family: var(--font-body);
     background: var(--black);
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.8;
     min-height: 100vh;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    font-size: 18px;
+    font-weight: 400;
 }
 
 a {
@@ -96,20 +99,22 @@ img {
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 1.2;
+    font-weight: 600;
+    line-height: 1.3;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
 
-h1 { font-size: clamp(2rem, 5vw, 4rem); }
-h2 { font-size: clamp(1.5rem, 4vw, 3rem); }
-h3 { font-size: clamp(1.25rem, 3vw, 2rem); }
-h4 { font-size: clamp(1rem, 2vw, 1.5rem); }
+h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+h3 { font-size: clamp(1.2rem, 3vw, 1.8rem); }
+h4 { font-size: clamp(1rem, 2vw, 1.4rem); }
 
 p {
     margin-bottom: var(--spacing-md);
-    font-weight: 300;
+    font-weight: 400;
+    line-height: 1.8;
+    font-size: 1rem;
 }
 
 /* Container */
@@ -493,15 +498,15 @@ p {
     background: #FFFFFF;
     border-radius: var(--border-radius-lg);
     overflow: hidden;
-    border: 1px solid #d4d4bc;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     transition: all var(--transition-normal);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-card);
 }
 
 .article-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
     border-color: #8B0000;
 }
 
@@ -509,7 +514,7 @@ p {
     position: relative;
     height: 200px;
     overflow: hidden;
-    background: #e5e5cd;
+    background: #e8e8dc;
 }
 
 .article-image img {
@@ -529,11 +534,11 @@ p {
     left: 12px;
     background: #8B0000;
     color: #FFFFFF;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: var(--border-radius);
     font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -546,10 +551,11 @@ p {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 10px;
-    font-size: 0.8rem;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
     color: var(--text-muted);
     flex-wrap: wrap;
+    font-weight: 400;
 }
 
 .article-meta svg {
@@ -561,13 +567,15 @@ p {
 .article-read-time {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .article-card h3 {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
+    font-size: 1.15rem;
+    margin-bottom: 12px;
     transition: color var(--transition-fast);
+    line-height: 1.4;
+    font-weight: 600;
 }
 
 .article-card:hover h3 {
@@ -576,12 +584,13 @@ p {
 
 .article-excerpt {
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    line-height: 1.7;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font-weight: 400;
 }
 
 .article-footer {
@@ -723,16 +732,19 @@ p {
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
-    border: 1px solid #d4d4bc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-card);
 }
 
 .widget-title {
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-bottom: var(--spacing-md);
     padding-bottom: var(--spacing-sm);
     border-bottom: 2px solid #8B0000;
-    color: #1a1a1a;
+    color: #111111;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 /* Newsletter Widget */
@@ -744,14 +756,15 @@ p {
 
 .newsletter-form input {
     background: #FFFFFF;
-    border: 1px solid #d4d4bc;
-    color: #1a1a1a;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: #111111;
     padding: 12px 15px;
     border-radius: var(--border-radius);
     font-family: var(--font-body);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     transition: border-color var(--transition-fast);
     width: 100%;
+    font-weight: 400;
 }
 
 .newsletter-form input:focus {
@@ -766,11 +779,12 @@ p {
     padding: 12px 15px;
     border-radius: var(--border-radius);
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     cursor: pointer;
     transition: all var(--transition-fast);
+    font-size: 0.9rem;
 }
 
 .newsletter-form button:hover {
@@ -781,8 +795,8 @@ p {
 .popular-post {
     display: flex;
     gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid #e5e5cd;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .popular-post:last-child {
@@ -1095,7 +1109,8 @@ p {
     padding: 12px 24px;
     border-radius: var(--border-radius);
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     cursor: pointer;
@@ -1108,12 +1123,12 @@ p {
 }
 
 .btn-secondary {
-    background: #d4d4bc;
-    color: #1a1a1a;
+    background: #e0e0d6;
+    color: #111111;
 }
 
 .btn-secondary:hover {
-    background: #c4c4ac;
+    background: #d0d0c6;
 }
 
 /* ============================================
