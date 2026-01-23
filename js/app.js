@@ -112,13 +112,47 @@ const DB = {
         }
     },
 
-    // Increment view count
+    // Increment view count (excludes admin devices)
     async incrementViews(id) {
         try {
+            // Check if user is admin (logged in to admin panel)
+            const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
+            
+            // Check if this device is marked as admin device
+            const isAdminDevice = localStorage.getItem('isAdminDevice') === 'true';
+            
+            // Don't count views from admin
+            if (isAdmin || isAdminDevice) {
+                console.log('Admin view - not counted');
+                return;
+            }
+            
+            // Check if user already viewed this article (prevent multiple counts)
+            const viewedArticles = JSON.parse(localStorage.getItem('viewedArticles') || '[]');
+            const viewKey = `${id}-${new Date().toDateString()}`;
+            
+            if (viewedArticles.includes(viewKey)) {
+                console.log('Already viewed today - not counted');
+                return;
+            }
+            
+            // Add to viewed articles
+            viewedArticles.push(viewKey);
+            localStorage.setItem('viewedArticles', JSON.stringify(viewedArticles));
+            
+            // Increment in Firebase
             const articleRef = doc(db, 'articles', id);
             await updateDoc(articleRef, {
                 views: increment(1)
             });
+            
+            // Track monthly views
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+            const monthlyData = JSON.parse(localStorage.getItem('monthlyViews') || '{}');
+            monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+            localStorage.setItem('monthlyViews', JSON.stringify(monthlyData));
+            
         } catch (error) {
             console.error('Error incrementing views:', error);
         }
@@ -474,7 +508,84 @@ const Admin = {
     // Initialize admin panel
     init() {
         this.loadArticlesList();
+        this.loadDashboardStats();
         this.setupForm();
+    },
+
+    // Load dashboard statistics
+    async loadDashboardStats() {
+        const articles = await DB.getArticles();
+        
+        // Total articles
+        const totalArticles = articles.length;
+        const statTotal = document.getElementById('stat-total');
+        if (statTotal) statTotal.textContent = totalArticles;
+        
+        // Total views (sum of all article views)
+        const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
+        const statViews = document.getElementById('stat-views');
+        if (statViews) statViews.textContent = totalViews.toLocaleString();
+        
+        // This month's articles
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        
+        // Count articles created this month
+        const articlesThisMonth = articles.filter(article => {
+            const articleDate = new Date(article.createdAt);
+            return articleDate.getMonth() === thisMonth && articleDate.getFullYear() === thisYear;
+        }).length;
+        
+        // Get monthly views from localStorage
+        const monthKey = `${thisYear}-${thisMonth}`;
+        const monthlyData = JSON.parse(localStorage.getItem('monthlyViews') || '{}');
+        const monthlyViews = monthlyData[monthKey] || 0;
+        
+        const statMonth = document.getElementById('stat-month');
+        if (statMonth) statMonth.textContent = monthlyViews.toLocaleString();
+        
+        // Update categories count
+        const statCategories = document.getElementById('stat-categories');
+        if (statCategories) {
+            const uniqueCategories = [...new Set(articles.map(a => a.category))].length;
+            statCategories.textContent = uniqueCategories || 5;
+        }
+        
+        // Load recent articles for dashboard
+        this.loadRecentArticlesAdmin(articles.slice(0, 5));
+    },
+    
+    // Load recent articles for admin dashboard
+    loadRecentArticlesAdmin(articles) {
+        const container = document.getElementById('recent-articles-admin');
+        if (!container) return;
+        
+        if (articles.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No articles yet. Create your first article!</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        articles.forEach(article => {
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f5f5eb; border-radius: 8px; border-left: 4px solid #8B0000;">
+                    <div>
+                        <strong style="font-size: 0.95rem; color: #111;">${Utils.truncate(article.title, 45)}</strong>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                            <span style="background: #8B0000; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 0.7rem;">${article.category}</span>
+                            <span style="margin-left: 10px;">${Utils.formatDate(article.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 1.1rem; color: #8B0000; font-weight: 700;">${(article.views || 0).toLocaleString()}</span>
+                        <span style="display: block; font-size: 0.75rem; color: #666;">views</span>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
     },
 
     // Load articles list for admin
