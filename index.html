@@ -126,7 +126,33 @@
                 
                 <!-- Sidebar -->
                 <aside class="sidebar">
-                    <!-- Newsletter Widget -->
+                    <!-- eBook / Advertisement Widget (FIRST) -->
+                    <div class="sidebar-widget ad-widget" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 2px solid #8B7500;">
+                        <div style="text-align: center;">
+                            <span class="ad-badge">NEW EBOOK</span>
+                            <div class="ebook-cover" id="ebook-cover">
+                                <!-- Default book icon if no image -->
+                                <svg viewBox="0 0 24 24" fill="#8B7500" style="width: 60px; height: 60px;">
+                                    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+                                </svg>
+                            </div>
+                            <h4 id="ebook-title" style="font-family: var(--font-display); margin: 15px 0 10px; color: #FFFFFF; font-size: 1.1rem;">Your eBook Title Here</h4>
+                            <p id="ebook-description-short" style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 5px; line-height: 1.5;">
+                                Add your eBook description...
+                            </p>
+                            <a href="javascript:void(0)" id="ebook-read-more" onclick="toggleEbookDescription()" style="color: #8B7500; font-size: 0.8rem; text-decoration: underline; cursor: pointer;">Read More</a>
+                            <p id="ebook-description-full" style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 10px 0 15px; line-height: 1.5; display: none;"></p>
+                            <p class="ebook-price" id="ebook-price" style="color: #8B7500; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin: 15px 0;">₦2,500</p>
+                            <a href="#" id="ebook-link" class="btn" style="width: 100%; justify-content: center; background: #8B7500; color: #FFFFFF; font-weight: 600;">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;">
+                                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                                </svg>
+                                Buy Now
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Newsletter Widget (MOVED DOWN) -->
                     <div class="sidebar-widget">
                         <h3 class="widget-title">Newsletter</h3>
                         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 15px;">
@@ -180,30 +206,6 @@
                             </p>
                             <a href="https://www.youtube.com/@avalanchemedia" target="_blank" class="btn" style="width: 100%; justify-content: center; background: #FFFFFF; color: #8B0000;">
                                 Subscribe Now
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- eBook / Advertisement Widget -->
-                    <div class="sidebar-widget ad-widget" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 2px solid #8B7500;">
-                        <div style="text-align: center;">
-                            <span class="ad-badge">NEW EBOOK</span>
-                            <div class="ebook-cover" id="ebook-cover">
-                                <!-- Default book icon if no image -->
-                                <svg viewBox="0 0 24 24" fill="#8B7500" style="width: 60px; height: 60px;">
-                                    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
-                                </svg>
-                            </div>
-                            <h4 id="ebook-title" style="font-family: var(--font-display); margin: 15px 0 10px; color: #FFFFFF; font-size: 1.1rem;">Your eBook Title Here</h4>
-                            <p id="ebook-description" style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 15px; line-height: 1.5;">
-                                Add your eBook description or advertisement text here.
-                            </p>
-                            <p class="ebook-price" id="ebook-price" style="color: #8B7500; font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 15px;">₦2,500</p>
-                            <a href="#" id="ebook-link" class="btn" style="width: 100%; justify-content: center; background: #8B7500; color: #FFFFFF;">
-                                <svg viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; margin-right: 8px;">
-                                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                                </svg>
-                                Get It Now
                             </a>
                         </div>
                     </div>
@@ -305,6 +307,23 @@
     
     <!-- Load Ad Settings -->
     <script>
+        // Toggle eBook description
+        function toggleEbookDescription() {
+            const shortDesc = document.getElementById('ebook-description-short');
+            const fullDesc = document.getElementById('ebook-description-full');
+            const readMoreLink = document.getElementById('ebook-read-more');
+            
+            if (fullDesc.style.display === 'none') {
+                fullDesc.style.display = 'block';
+                shortDesc.style.display = 'none';
+                readMoreLink.textContent = 'Show Less';
+            } else {
+                fullDesc.style.display = 'none';
+                shortDesc.style.display = 'block';
+                readMoreLink.textContent = 'Read More';
+            }
+        }
+        
         // Load eBook and Banner settings from localStorage
         document.addEventListener('DOMContentLoaded', function() {
             // Load eBook settings
@@ -316,7 +335,17 @@
                     document.getElementById('ebook-title').textContent = ebookSettings.title;
                 }
                 if (ebookSettings.description) {
-                    document.getElementById('ebook-description').textContent = ebookSettings.description;
+                    // Short description (first 50 chars + ...)
+                    const shortText = ebookSettings.description.length > 50 
+                        ? ebookSettings.description.substring(0, 50) + '...' 
+                        : ebookSettings.description;
+                    document.getElementById('ebook-description-short').textContent = shortText;
+                    document.getElementById('ebook-description-full').textContent = ebookSettings.description;
+                    
+                    // Hide Read More if description is short
+                    if (ebookSettings.description.length <= 50) {
+                        document.getElementById('ebook-read-more').style.display = 'none';
+                    }
                 }
                 if (ebookSettings.price) {
                     document.getElementById('ebook-price').textContent = ebookSettings.price;
