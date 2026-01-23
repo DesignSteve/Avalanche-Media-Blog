@@ -267,9 +267,10 @@ p {
 
 .menu-toggle span {
     width: 24px;
-    height: 2px;
-    background: var(--text-primary);
+    height: 3px;
+    background: #8B0000;
     transition: all var(--transition-fast);
+    border-radius: 2px;
 }
 
 /* ============================================

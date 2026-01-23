@@ -123,6 +123,60 @@
             background: #c82333;
         }
 
+        /* Image Upload Styles */
+        .image-upload-options {
+            margin-bottom: 10px;
+        }
+        
+        .upload-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-tab {
+            padding: 8px 16px;
+            border: 1px solid #d4d4bc;
+            background: #f5f5e8;
+            color: #333;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .upload-tab:hover {
+            background: #e8e8d8;
+        }
+        
+        .upload-tab.active {
+            background: #8B0000;
+            color: #FFFFFF;
+            border-color: #8B0000;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        #image-file {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #d4d4bc;
+            border-radius: var(--border-radius);
+            background: #f9f9f0;
+            cursor: pointer;
+        }
+        
+        #image-file:hover {
+            border-color: #8B0000;
+            background: #fff;
+        }
+
         /* Hide admin content initially */
         .admin-container {
             display: none;
@@ -450,10 +504,25 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="image">Featured Image URL</label>
-                                <input type="url" id="image" name="image" placeholder="https://example.com/image.jpg">
-                                <p class="help-text">Leave blank for auto-generated placeholder</p>
+                                <label>Featured Image</label>
+                                <div class="image-upload-options">
+                                    <div class="upload-tabs">
+                                        <button type="button" class="upload-tab active" onclick="switchImageTab('upload')">Upload Image</button>
+                                        <button type="button" class="upload-tab" onclick="switchImageTab('url')">Image URL</button>
+                                    </div>
+                                    
+                                    <div id="upload-tab-content" class="tab-content active">
+                                        <input type="file" id="image-file" name="image-file" accept="image/*" onchange="previewUploadedImage(this)">
+                                        <p class="help-text">Upload from your device (JPG, PNG, GIF)</p>
+                                    </div>
+                                    
+                                    <div id="url-tab-content" class="tab-content" style="display: none;">
+                                        <input type="url" id="image" name="image" placeholder="https://example.com/image.jpg" oninput="previewImageUrl(this)">
+                                        <p class="help-text">Or paste an image URL</p>
+                                    </div>
+                                </div>
                                 <div class="image-preview" id="image-preview"></div>
+                                <input type="hidden" id="image-base64" name="image-base64">
                             </div>
                         </div>
                         
@@ -566,15 +635,63 @@ You can use simple formatting:
             textarea.setSelectionRange(start + before.length, start + before.length + selectedText.length);
         }
         
-        // Image preview
-        document.getElementById('image').addEventListener('input', function() {
+        // Switch between upload and URL tabs
+        function switchImageTab(tab) {
+            const uploadTab = document.getElementById('upload-tab-content');
+            const urlTab = document.getElementById('url-tab-content');
+            const tabs = document.querySelectorAll('.upload-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'upload') {
+                uploadTab.style.display = 'block';
+                uploadTab.classList.add('active');
+                urlTab.style.display = 'none';
+                urlTab.classList.remove('active');
+                tabs[0].classList.add('active');
+            } else {
+                uploadTab.style.display = 'none';
+                uploadTab.classList.remove('active');
+                urlTab.style.display = 'block';
+                urlTab.classList.add('active');
+                tabs[1].classList.add('active');
+            }
+        }
+        
+        // Preview uploaded image
+        function previewUploadedImage(input) {
             const preview = document.getElementById('image-preview');
-            if (this.value) {
-                preview.innerHTML = `<img src="${this.value}" alt="Preview" onerror="this.parentElement.innerHTML='<p style=\\'color: var(--text-muted); font-size: 0.85rem;\\'>Invalid image URL</p>'">`;
+            const base64Input = document.getElementById('image-base64');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const base64 = e.target.result;
+                    preview.innerHTML = '<img src="' + base64 + '" alt="Preview">';
+                    base64Input.value = base64;
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+                base64Input.value = '';
+            }
+        }
+        
+        // Preview image from URL
+        function previewImageUrl(input) {
+            const preview = document.getElementById('image-preview');
+            const base64Input = document.getElementById('image-base64');
+            
+            if (input.value) {
+                preview.innerHTML = '<img src="' + input.value + '" alt="Preview" onerror="this.parentElement.innerHTML=\'<p style=color:#666;font-size:0.85rem;>Invalid image URL</p>\'">';
+                base64Input.value = '';
             } else {
                 preview.innerHTML = '';
             }
-        });
+        }
     </script>
     <script type="module" src="js/app.js"></script>
 </body>

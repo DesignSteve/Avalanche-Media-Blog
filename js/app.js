@@ -536,13 +536,16 @@ const Admin = {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
         
+        // Get image - either from base64 upload or URL
+        let imageUrl = formData.get('image-base64') || formData.get('image') || '';
+        
         const article = {
             title: formData.get('title'),
             slug: Utils.createSlug(formData.get('title')),
             category: formData.get('category'),
             excerpt: formData.get('excerpt'),
             content: formData.get('content'),
-            image: formData.get('image'),
+            image: imageUrl,
             author: formData.get('author') || 'Avalanche Media'
         };
 
@@ -561,6 +564,10 @@ const Admin = {
         }
 
         form.reset();
+        // Clear image preview
+        document.getElementById('image-preview').innerHTML = '';
+        document.getElementById('image-base64').value = '';
+        
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
