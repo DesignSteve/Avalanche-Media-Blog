@@ -653,12 +653,14 @@ p {
    ============================================ */
 .article-page {
     padding-top: 80px;
+    background: #FFFFFF;
 }
 
 .article-header {
     padding: var(--spacing-2xl) 0;
     text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #FAFAFA;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .article-header .article-category {
@@ -670,11 +672,14 @@ p {
 .article-header h1 {
     max-width: 900px;
     margin: 0 auto var(--spacing-lg);
+    color: #111111;
+    font-weight: 700;
 }
 
 .article-header .article-meta {
     justify-content: center;
     margin-bottom: 0;
+    color: #444444;
 }
 
 .article-hero-image {
@@ -687,29 +692,71 @@ p {
 .article-body {
     max-width: 800px;
     margin: 0 auto;
-    padding: var(--spacing-xl) 15px;
+    padding: var(--spacing-xl) 20px;
+    background: #FFFFFF;
 }
 
 .article-body p {
-    font-size: 1.1rem;
-    line-height: 1.8;
+    font-size: 1.15rem;
+    line-height: 1.9;
     margin-bottom: var(--spacing-lg);
+    color: #1a1a1a;
+    font-weight: 400;
 }
 
 .article-body h2 {
     margin-top: var(--spacing-xl);
     margin-bottom: var(--spacing-md);
-    color: var(--primary-red);
+    color: #111111;
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.article-body h3 {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
+    color: #222222;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
 .article-body blockquote {
     border-left: 4px solid var(--gold);
     padding-left: var(--spacing-lg);
     margin: var(--spacing-xl) 0;
-    font-family: var(--font-accent);
     font-style: italic;
     font-size: 1.2rem;
-    color: var(--text-secondary);
+    color: #333333;
+    background: #FAFAFA;
+    padding: 20px 25px;
+    border-radius: 0 8px 8px 0;
+}
+
+.article-body ul,
+.article-body ol {
+    margin-bottom: var(--spacing-lg);
+    padding-left: 25px;
+    color: #1a1a1a;
+}
+
+.article-body li {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.article-body a {
+    color: #8B0000;
+    text-decoration: underline;
+}
+
+.article-body a:hover {
+    color: #6B0000;
+}
+
+.article-body strong {
+    font-weight: 600;
+    color: #111111;
 }
 
 /* ============================================
