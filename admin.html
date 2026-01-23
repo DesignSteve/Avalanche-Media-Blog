@@ -408,6 +408,14 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" data-tab="ads">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                                    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"></path>
+                                </svg>
+                                eBook / Ads
+                            </a>
+                        </li>
+                        <li>
                             <a href="index.html">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -565,6 +573,96 @@ You can use simple formatting:
                         </div>
                     </form>
                 </div>
+                
+                <!-- eBook / Ads Management Panel -->
+                <div class="admin-panel" id="ads-panel">
+                    <h2 style="margin-bottom: 30px;">eBook / <span style="color: var(--gold);">Advertisements</span></h2>
+                    
+                    <div class="form-row">
+                        <!-- eBook Section -->
+                        <div style="flex: 1;">
+                            <h3 style="margin-bottom: 20px; color: var(--text-primary);">📚 eBook Promotion</h3>
+                            <form id="ebook-form">
+                                <div class="form-group">
+                                    <label for="ebook-title-input">eBook Title</label>
+                                    <input type="text" id="ebook-title-input" placeholder="e.g., Political Analysis Guide 2026">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ebook-description-input">Description</label>
+                                    <textarea id="ebook-description-input" rows="3" placeholder="Brief description of your eBook..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ebook-price-input">Price</label>
+                                    <input type="text" id="ebook-price-input" placeholder="e.g., ₦2,500 or FREE">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ebook-link-input">Purchase/Download Link</label>
+                                    <input type="url" id="ebook-link-input" placeholder="https://selar.co/your-ebook">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>eBook Cover Image</label>
+                                    <input type="file" id="ebook-cover-input" accept="image/*" onchange="previewEbookCover(this)">
+                                    <p class="help-text">Upload your eBook cover (recommended: 120x160px)</p>
+                                    <div id="ebook-cover-preview" style="margin-top: 10px;"></div>
+                                    <input type="hidden" id="ebook-cover-base64">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="ebook-enabled" checked> Show eBook widget on website
+                                    </label>
+                                </div>
+                                
+                                <button type="button" onclick="saveEbookSettings()" class="btn" style="margin-top: 15px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    Save eBook Settings
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Banner Ad Section -->
+                        <div style="flex: 1;">
+                            <h3 style="margin-bottom: 20px; color: var(--text-primary);">🎯 Banner Advertisement</h3>
+                            <form id="banner-form">
+                                <div class="form-group">
+                                    <label>Banner Image</label>
+                                    <input type="file" id="banner-image-input" accept="image/*" onchange="previewBannerImage(this)">
+                                    <p class="help-text">Upload banner image (recommended: 300x250px or 300x600px)</p>
+                                    <div id="banner-preview" style="margin-top: 10px;"></div>
+                                    <input type="hidden" id="banner-image-base64">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="banner-link-input">Banner Link URL</label>
+                                    <input type="url" id="banner-link-input" placeholder="https://example.com/landing-page">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>
+                                        <input type="checkbox" id="banner-enabled"> Show banner ad on website
+                                    </label>
+                                </div>
+                                
+                                <button type="button" onclick="saveBannerSettings()" class="btn" style="margin-top: 15px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    Save Banner Settings
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -692,6 +790,100 @@ You can use simple formatting:
                 preview.innerHTML = '';
             }
         }
+        
+        // ============================================
+        // EBOOK / ADS MANAGEMENT
+        // ============================================
+        
+        // Preview eBook cover
+        function previewEbookCover(input) {
+            const preview = document.getElementById('ebook-cover-preview');
+            const base64Input = document.getElementById('ebook-cover-base64');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Cover" style="max-width: 120px; border-radius: 4px;">';
+                    base64Input.value = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Preview banner image
+        function previewBannerImage(input) {
+            const preview = document.getElementById('banner-preview');
+            const base64Input = document.getElementById('banner-image-base64');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Banner" style="max-width: 100%; border-radius: 4px;">';
+                    base64Input.value = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // Save eBook settings to localStorage
+        function saveEbookSettings() {
+            const settings = {
+                title: document.getElementById('ebook-title-input').value,
+                description: document.getElementById('ebook-description-input').value,
+                price: document.getElementById('ebook-price-input').value,
+                link: document.getElementById('ebook-link-input').value,
+                cover: document.getElementById('ebook-cover-base64').value,
+                enabled: document.getElementById('ebook-enabled').checked
+            };
+            
+            localStorage.setItem('ebookSettings', JSON.stringify(settings));
+            alert('eBook settings saved successfully!');
+        }
+        
+        // Save banner settings to localStorage
+        function saveBannerSettings() {
+            const settings = {
+                image: document.getElementById('banner-image-base64').value,
+                link: document.getElementById('banner-link-input').value,
+                enabled: document.getElementById('banner-enabled').checked
+            };
+            
+            localStorage.setItem('bannerSettings', JSON.stringify(settings));
+            alert('Banner settings saved successfully!');
+        }
+        
+        // Load saved settings on page load
+        function loadAdSettings() {
+            // Load eBook settings
+            const ebookSettings = JSON.parse(localStorage.getItem('ebookSettings') || '{}');
+            if (ebookSettings.title) {
+                document.getElementById('ebook-title-input').value = ebookSettings.title || '';
+                document.getElementById('ebook-description-input').value = ebookSettings.description || '';
+                document.getElementById('ebook-price-input').value = ebookSettings.price || '';
+                document.getElementById('ebook-link-input').value = ebookSettings.link || '';
+                document.getElementById('ebook-enabled').checked = ebookSettings.enabled !== false;
+                if (ebookSettings.cover) {
+                    document.getElementById('ebook-cover-base64').value = ebookSettings.cover;
+                    document.getElementById('ebook-cover-preview').innerHTML = '<img src="' + ebookSettings.cover + '" alt="Cover" style="max-width: 120px; border-radius: 4px;">';
+                }
+            }
+            
+            // Load banner settings
+            const bannerSettings = JSON.parse(localStorage.getItem('bannerSettings') || '{}');
+            if (bannerSettings.image) {
+                document.getElementById('banner-image-base64').value = bannerSettings.image || '';
+                document.getElementById('banner-link-input').value = bannerSettings.link || '';
+                document.getElementById('banner-enabled').checked = bannerSettings.enabled === true;
+                if (bannerSettings.image) {
+                    document.getElementById('banner-preview').innerHTML = '<img src="' + bannerSettings.image + '" alt="Banner" style="max-width: 100%; border-radius: 4px;">';
+                }
+            }
+        }
+        
+        // Load settings when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadAdSettings, 500);
+        });
     </script>
     <script type="module" src="js/app.js"></script>
 </body>
