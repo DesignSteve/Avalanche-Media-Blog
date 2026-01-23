@@ -1177,9 +1177,20 @@ const App = {
                 const isLiked = likedComments.includes(comment.id);
                 const commentIndex = index;
                 
+                // Get user initials for avatar
+                const nameParts = comment.name.trim().split(' ');
+                const initials = nameParts.length > 1 
+                    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                    : comment.name.substring(0, 2).toUpperCase();
+                
+                // Generate a consistent color based on the name
+                const colors = ['#8B0000', '#8B7500', '#2E7D32', '#1565C0', '#6A1B9A', '#C62828', '#00695C', '#4527A0'];
+                const colorIndex = comment.name.length % colors.length;
+                const avatarColor = colors[colorIndex];
+                
                 html += '<div class="comment" data-comment-id="' + comment.id + '" data-index="' + commentIndex + '">';
                 html += '<div class="comment-header">';
-                html += '<img src="images/logo.png" alt="' + comment.name + '" class="comment-avatar">';
+                html += '<div class="comment-avatar" style="background: ' + avatarColor + '; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem;">' + initials + '</div>';
                 html += '<div class="comment-info">';
                 html += '<strong class="comment-author">' + comment.name + '</strong>';
                 html += '<span class="comment-date">' + Utils.formatDate(comment.createdAt);
