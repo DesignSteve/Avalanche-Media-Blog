@@ -1889,3 +1889,55 @@ p {
         min-width: 80px;
     }
 }
+
+/* ============================================
+   ADVERTISEMENT CONTAINERS (AdSense Ready)
+   ============================================ */
+.ad-container {
+    background: #f5f5f5;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 25px 0;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-container-horizontal {
+    min-height: 90px;
+    width: 100%;
+}
+
+.ad-container-sidebar {
+    min-height: 250px;
+}
+
+.ad-container-article {
+    min-height: 280px;
+    margin: 30px 0;
+}
+
+.ad-label {
+    color: #999;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Hide ad placeholder text when ad loads */
+.ad-container ins {
+    display: block;
+}
+
+.ad-container.ad-loaded {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.ad-container.ad-loaded .ad-label {
+    display: none;
+}
