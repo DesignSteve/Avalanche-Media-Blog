@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Avalanche Media - Political Commentary, Review, Analysis & Political Happenings">
-    <meta name="keywords" content="politics, news, commentary, analysis, political happenings">
+    
+    <!-- Primary SEO Meta Tags -->
+    <meta name="title" content="Avalanche Media | Political Commentary & Analysis">
+    <meta name="description" content="Avalanche Media - Your trusted source for political commentary, review, analysis, and coverage of political happenings in Nigeria and beyond.">
+    <meta name="keywords" content="politics, Nigeria politics, political news, political commentary, political analysis, political review, political happenings, Nigerian news, Africa politics, election news">
     <meta name="author" content="Avalanche Media">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="1 days">
+    <link rel="canonical" href="https://avalanchemediablog.com/">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#8B0000">
@@ -18,16 +25,66 @@
     <link rel="apple-touch-icon" href="images/icon-152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="images/icon-192.png">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="Avalanche Media">
-    <meta property="og:description" content="Political Commentary | Review | Analysis | Political Happenings">
-    <meta property="og:image" content="images/banner.png">
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://avalanchemediablog.com/">
+    <meta property="og:title" content="Avalanche Media | Political Commentary & Analysis">
+    <meta property="og:description" content="Your trusted source for political commentary, review, analysis, and coverage of political happenings.">
+    <meta property="og:image" content="https://avalanchemediablog.com/images/banner.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Avalanche Media">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://avalanchemediablog.com/">
+    <meta name="twitter:title" content="Avalanche Media | Political Commentary & Analysis">
+    <meta name="twitter:description" content="Your trusted source for political commentary, review, analysis, and coverage of political happenings.">
+    <meta name="twitter:image" content="https://avalanchemediablog.com/images/banner.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon-72.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="images/icon-96.png">
     
     <title>Avalanche Media | Political Commentary & Analysis</title>
+    
+    <!-- Schema.org Markup for Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Avalanche Media",
+        "url": "https://avalanchemediablog.com",
+        "logo": "https://avalanchemediablog.com/images/logo.png",
+        "description": "Your trusted source for political commentary, review, analysis, and coverage of political happenings.",
+        "sameAs": [
+            "https://www.youtube.com/@avalanchemedia",
+            "https://www.facebook.com/share/1FvBysr7xz/"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "avalanchemedia2022@gmail.com",
+            "contactType": "customer service"
+        }
+    }
+    </script>
+    
+    <!-- Schema.org Markup for Website -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Avalanche Media",
+        "url": "https://avalanchemediablog.com",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://avalanchemediablog.com/?s={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
@@ -317,6 +374,7 @@
                 <div class="footer-legal">
                     <a href="privacy.html">Privacy Policy</a>
                     <a href="terms.html">Terms of Service</a>
+                    <a href="affiliate-disclosure.html">Affiliate Disclosure</a>
                 </div>
             </div>
         </div>
@@ -325,10 +383,25 @@
     <!-- Scripts -->
     <script type="module" src="js/app.js"></script>
     
-    <!-- Load Ad Settings -->
-    <script>
+    <!-- Load Ad Settings from Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9_opVhLABVhRH4naU7deKcNXPZZxn0gE",
+            authDomain: "avalanchemedia-3e261.firebaseapp.com",
+            projectId: "avalanchemedia-3e261",
+            storageBucket: "avalanchemedia-3e261.firebasestorage.app",
+            messagingSenderId: "152968664590",
+            appId: "1:152968664590:web:741ae914516ecc906a4e5f"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
         // Toggle eBook description
-        function toggleEbookDescription() {
+        window.toggleEbookDescription = function() {
             const shortDesc = document.getElementById('ebook-description-short');
             const fullDesc = document.getElementById('ebook-description-full');
             const readMoreLink = document.getElementById('ebook-read-more');
@@ -344,51 +417,69 @@
             }
         }
         
-        // Load eBook and Banner settings from localStorage
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load eBook settings
-            const ebookSettings = JSON.parse(localStorage.getItem('ebookSettings') || '{}');
-            const ebookWidget = document.querySelector('.ad-widget');
-            
-            if (ebookSettings.enabled !== false && ebookWidget) {
-                if (ebookSettings.title) {
-                    document.getElementById('ebook-title').textContent = ebookSettings.title;
-                }
-                if (ebookSettings.description) {
-                    // Short description (first 50 chars + ...)
-                    const shortText = ebookSettings.description.length > 50 
-                        ? ebookSettings.description.substring(0, 50) + '...' 
-                        : ebookSettings.description;
-                    document.getElementById('ebook-description-short').textContent = shortText;
-                    document.getElementById('ebook-description-full').textContent = ebookSettings.description;
+        // Load settings from Firebase
+        async function loadSettingsFromFirebase() {
+            try {
+                // Load eBook settings
+                const ebookRef = doc(db, 'siteSettings', 'ebook');
+                const ebookSnap = await getDoc(ebookRef);
+                const ebookWidget = document.querySelector('.ad-widget');
+                
+                if (ebookSnap.exists()) {
+                    const ebookSettings = ebookSnap.data();
                     
-                    // Hide Read More if description is short
-                    if (ebookSettings.description.length <= 50) {
-                        document.getElementById('ebook-read-more').style.display = 'none';
+                    if (ebookSettings.enabled !== false && ebookWidget) {
+                        if (ebookSettings.title) {
+                            document.getElementById('ebook-title').textContent = ebookSettings.title;
+                        }
+                        if (ebookSettings.description) {
+                            const shortText = ebookSettings.description.length > 50 
+                                ? ebookSettings.description.substring(0, 50) + '...' 
+                                : ebookSettings.description;
+                            document.getElementById('ebook-description-short').textContent = shortText;
+                            document.getElementById('ebook-description-full').textContent = ebookSettings.description;
+                            
+                            if (ebookSettings.description.length <= 50) {
+                                document.getElementById('ebook-read-more').style.display = 'none';
+                            }
+                        }
+                        if (ebookSettings.price) {
+                            document.getElementById('ebook-price').textContent = ebookSettings.price;
+                        }
+                        if (ebookSettings.link) {
+                            document.getElementById('ebook-link').href = ebookSettings.link;
+                        }
+                        if (ebookSettings.cover) {
+                            document.getElementById('ebook-cover').innerHTML = '<img src="' + ebookSettings.cover + '" alt="eBook Cover" style="width: 100%; height: 100%; object-fit: cover;">';
+                        }
+                        ebookWidget.style.display = 'block';
+                    } else if (ebookWidget && ebookSettings.enabled === false) {
+                        ebookWidget.style.display = 'none';
                     }
                 }
-                if (ebookSettings.price) {
-                    document.getElementById('ebook-price').textContent = ebookSettings.price;
+                
+                // Load banner settings
+                const bannerRef = doc(db, 'siteSettings', 'banner');
+                const bannerSnap = await getDoc(bannerRef);
+                const bannerWidget = document.getElementById('ad-banner');
+                
+                if (bannerSnap.exists()) {
+                    const bannerSettings = bannerSnap.data();
+                    
+                    if (bannerSettings.enabled && bannerSettings.image && bannerWidget) {
+                        document.getElementById('ad-banner-image').src = bannerSettings.image;
+                        document.getElementById('ad-banner-link').href = bannerSettings.link || '#';
+                        bannerWidget.style.display = 'block';
+                    }
                 }
-                if (ebookSettings.link) {
-                    document.getElementById('ebook-link').href = ebookSettings.link;
-                }
-                if (ebookSettings.cover) {
-                    document.getElementById('ebook-cover').innerHTML = '<img src="' + ebookSettings.cover + '" alt="eBook Cover" style="width: 100%; height: 100%; object-fit: cover;">';
-                }
-            } else if (ebookWidget && ebookSettings.enabled === false) {
-                ebookWidget.style.display = 'none';
+            } catch (error) {
+                console.error('Error loading settings from Firebase:', error);
             }
-            
-            // Load banner settings
-            const bannerSettings = JSON.parse(localStorage.getItem('bannerSettings') || '{}');
-            const bannerWidget = document.getElementById('ad-banner');
-            
-            if (bannerSettings.enabled && bannerSettings.image && bannerWidget) {
-                document.getElementById('ad-banner-image').src = bannerSettings.image;
-                document.getElementById('ad-banner-link').href = bannerSettings.link || '#';
-                bannerWidget.style.display = 'block';
-            }
+        }
+        
+        // Load settings when page is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettingsFromFirebase();
         });
     </script>
     

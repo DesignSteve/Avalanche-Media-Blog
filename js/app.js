@@ -8,7 +8,7 @@
 // FIREBASE CONFIGURATION
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB9_opVhLABVhRH4naU7deKcNXPZZxn0gE",
@@ -22,6 +22,74 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+
+// ============================================
+// SITE SETTINGS (Firebase Firestore)
+// ============================================
+const SiteSettings = {
+    // Save eBook settings to Firebase
+    async saveEbookSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving eBook settings:', error);
+            return false;
+        }
+    },
+    
+    // Get eBook settings from Firebase
+    async getEbookSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting eBook settings:', error);
+            return null;
+        }
+    },
+    
+    // Save banner settings to Firebase
+    async saveBannerSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving banner settings:', error);
+            return false;
+        }
+    },
+    
+    // Get banner settings from Firebase
+    async getBannerSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting banner settings:', error);
+            return null;
+        }
+    }
+};
+
+// Make SiteSettings available globally
+window.SiteSettings = SiteSettings;
 
 // ============================================
 // DATA STORE (Firebase Firestore)
@@ -355,6 +423,76 @@ const ArticleRenderer = {
         const articleUrl = encodeURIComponent(window.location.href);
         const articleTitle = encodeURIComponent(article.title);
         
+        // Update page title and meta tags for SEO
+        document.title = `${article.title} | Avalanche Media`;
+        document.querySelector('meta[name="description"]').setAttribute('content', article.excerpt || article.content.substring(0, 160));
+        
+        // Update Open Graph meta tags
+        const ogTags = {
+            'og:title': article.title,
+            'og:description': article.excerpt || article.content.substring(0, 160),
+            'og:image': article.image || 'https://avalanchemediablog.com/images/banner.png',
+            'og:url': window.location.href
+        };
+        
+        for (const [property, content] of Object.entries(ogTags)) {
+            let meta = document.querySelector(`meta[property="${property}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('property', property);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Twitter meta tags
+        const twitterTags = {
+            'twitter:title': article.title,
+            'twitter:description': article.excerpt || article.content.substring(0, 160),
+            'twitter:image': article.image || 'https://avalanchemediablog.com/images/banner.png'
+        };
+        
+        for (const [name, content] of Object.entries(twitterTags)) {
+            let meta = document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('name', name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Article Schema
+        const schemaScript = document.getElementById('article-schema');
+        if (schemaScript) {
+            const schema = {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": article.title,
+                "description": article.excerpt || article.content.substring(0, 160),
+                "image": article.image || "https://avalanchemediablog.com/images/banner.png",
+                "datePublished": article.createdAt,
+                "dateModified": article.updatedAt || article.createdAt,
+                "author": {
+                    "@type": "Person",
+                    "name": article.author || "Avalanche Media"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Avalanche Media",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://avalanchemediablog.com/images/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": window.location.href
+                }
+            };
+            schemaScript.textContent = JSON.stringify(schema);
+        }
+        
         // Convert markdown-like content to HTML
         let htmlContent = article.content
             .replace(/\n\n/g, '</p><p>')
@@ -364,7 +502,11 @@ const ArticleRenderer = {
             .replace(/^### (.*$)/gm, '</p><h3>$1</h3><p>')
             .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>')
             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-            .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+            // YouTube video embeds - convert YouTube URLs to embedded players
+            .replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s<]*)/g, 
+                '</p><div class="video-embed"><iframe width="100%" height="400" src="https://www.youtube.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><p>')
+            // Auto-link URLs (but not ones already in href or YouTube embeds)
+            .replace(/(?<!href="|src="|">)(https?:\/\/(?!www\.youtube\.com|youtu\.be)[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         
         htmlContent = '<p>' + htmlContent + '</p>';
         htmlContent = htmlContent.replace(/<p><\/p>/g, '');

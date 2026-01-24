@@ -882,8 +882,8 @@ You can use simple formatting:
             }
         }
         
-        // Save eBook settings to localStorage
-        function saveEbookSettings() {
+        // Save eBook settings to Firebase
+        async function saveEbookSettings() {
             const settings = {
                 title: document.getElementById('ebook-title-input').value,
                 description: document.getElementById('ebook-description-input').value,
@@ -893,53 +893,102 @@ You can use simple formatting:
                 enabled: document.getElementById('ebook-enabled').checked
             };
             
-            localStorage.setItem('ebookSettings', JSON.stringify(settings));
-            alert('eBook settings saved successfully!');
+            // Save to Firebase
+            if (window.SiteSettings) {
+                const success = await window.SiteSettings.saveEbookSettings(settings);
+                if (success) {
+                    alert('eBook settings saved to database successfully!');
+                } else {
+                    alert('Error saving to database. Settings saved locally as backup.');
+                    localStorage.setItem('ebookSettings', JSON.stringify(settings));
+                }
+            } else {
+                localStorage.setItem('ebookSettings', JSON.stringify(settings));
+                alert('eBook settings saved locally!');
+            }
         }
         
-        // Save banner settings to localStorage
-        function saveBannerSettings() {
+        // Save banner settings to Firebase
+        async function saveBannerSettings() {
             const settings = {
                 image: document.getElementById('banner-image-base64').value,
                 link: document.getElementById('banner-link-input').value,
                 enabled: document.getElementById('banner-enabled').checked
             };
             
-            localStorage.setItem('bannerSettings', JSON.stringify(settings));
-            alert('Banner settings saved successfully!');
+            // Save to Firebase
+            if (window.SiteSettings) {
+                const success = await window.SiteSettings.saveBannerSettings(settings);
+                if (success) {
+                    alert('Banner settings saved to database successfully!');
+                } else {
+                    alert('Error saving to database. Settings saved locally as backup.');
+                    localStorage.setItem('bannerSettings', JSON.stringify(settings));
+                }
+            } else {
+                localStorage.setItem('bannerSettings', JSON.stringify(settings));
+                alert('Banner settings saved locally!');
+            }
         }
         
-        // Load saved settings on page load
-        function loadAdSettings() {
-            // Load eBook settings
-            const ebookSettings = JSON.parse(localStorage.getItem('ebookSettings') || '{}');
-            if (ebookSettings.title) {
-                document.getElementById('ebook-title-input').value = ebookSettings.title || '';
-                document.getElementById('ebook-description-input').value = ebookSettings.description || '';
-                document.getElementById('ebook-price-input').value = ebookSettings.price || '';
-                document.getElementById('ebook-link-input').value = ebookSettings.link || '';
-                document.getElementById('ebook-enabled').checked = ebookSettings.enabled !== false;
-                if (ebookSettings.cover) {
-                    document.getElementById('ebook-cover-base64').value = ebookSettings.cover;
-                    document.getElementById('ebook-cover-preview').innerHTML = '<img src="' + ebookSettings.cover + '" alt="Cover" style="max-width: 120px; border-radius: 4px;">';
+        // Load saved settings from Firebase
+        async function loadAdSettings() {
+            // Try to load from Firebase first
+            if (window.SiteSettings) {
+                // Load eBook settings from Firebase
+                const ebookSettings = await window.SiteSettings.getEbookSettings();
+                if (ebookSettings) {
+                    document.getElementById('ebook-title-input').value = ebookSettings.title || '';
+                    document.getElementById('ebook-description-input').value = ebookSettings.description || '';
+                    document.getElementById('ebook-price-input').value = ebookSettings.price || '';
+                    document.getElementById('ebook-link-input').value = ebookSettings.link || '';
+                    document.getElementById('ebook-enabled').checked = ebookSettings.enabled !== false;
+                    if (ebookSettings.cover) {
+                        document.getElementById('ebook-cover-base64').value = ebookSettings.cover;
+                        document.getElementById('ebook-cover-preview').innerHTML = '<img src="' + ebookSettings.cover + '" alt="Cover" style="max-width: 120px; border-radius: 4px;">';
+                    }
                 }
-            }
-            
-            // Load banner settings
-            const bannerSettings = JSON.parse(localStorage.getItem('bannerSettings') || '{}');
-            if (bannerSettings.image) {
-                document.getElementById('banner-image-base64').value = bannerSettings.image || '';
-                document.getElementById('banner-link-input').value = bannerSettings.link || '';
-                document.getElementById('banner-enabled').checked = bannerSettings.enabled === true;
+                
+                // Load banner settings from Firebase
+                const bannerSettings = await window.SiteSettings.getBannerSettings();
+                if (bannerSettings) {
+                    document.getElementById('banner-image-base64').value = bannerSettings.image || '';
+                    document.getElementById('banner-link-input').value = bannerSettings.link || '';
+                    document.getElementById('banner-enabled').checked = bannerSettings.enabled === true;
+                    if (bannerSettings.image) {
+                        document.getElementById('banner-preview').innerHTML = '<img src="' + bannerSettings.image + '" alt="Banner" style="max-width: 100%; border-radius: 4px;">';
+                    }
+                }
+            } else {
+                // Fallback to localStorage
+                const ebookSettings = JSON.parse(localStorage.getItem('ebookSettings') || '{}');
+                if (ebookSettings.title) {
+                    document.getElementById('ebook-title-input').value = ebookSettings.title || '';
+                    document.getElementById('ebook-description-input').value = ebookSettings.description || '';
+                    document.getElementById('ebook-price-input').value = ebookSettings.price || '';
+                    document.getElementById('ebook-link-input').value = ebookSettings.link || '';
+                    document.getElementById('ebook-enabled').checked = ebookSettings.enabled !== false;
+                    if (ebookSettings.cover) {
+                        document.getElementById('ebook-cover-base64').value = ebookSettings.cover;
+                        document.getElementById('ebook-cover-preview').innerHTML = '<img src="' + ebookSettings.cover + '" alt="Cover" style="max-width: 120px; border-radius: 4px;">';
+                    }
+                }
+                
+                const bannerSettings = JSON.parse(localStorage.getItem('bannerSettings') || '{}');
                 if (bannerSettings.image) {
-                    document.getElementById('banner-preview').innerHTML = '<img src="' + bannerSettings.image + '" alt="Banner" style="max-width: 100%; border-radius: 4px;">';
+                    document.getElementById('banner-image-base64').value = bannerSettings.image || '';
+                    document.getElementById('banner-link-input').value = bannerSettings.link || '';
+                    document.getElementById('banner-enabled').checked = bannerSettings.enabled === true;
+                    if (bannerSettings.image) {
+                        document.getElementById('banner-preview').innerHTML = '<img src="' + bannerSettings.image + '" alt="Banner" style="max-width: 100%; border-radius: 4px;">';
+                    }
                 }
             }
         }
         
-        // Load settings when page loads
+        // Load settings when page loads (wait for Firebase to initialize)
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(loadAdSettings, 500);
+            setTimeout(loadAdSettings, 1000);
         });
     </script>
     <script type="module" src="js/app.js"></script>
