@@ -362,7 +362,9 @@ const ArticleRenderer = {
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/^## (.*$)/gm, '</p><h2>$1</h2><p>')
             .replace(/^### (.*$)/gm, '</p><h3>$1</h3><p>')
-            .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>');
+            .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+            .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         
         htmlContent = '<p>' + htmlContent + '</p>';
         htmlContent = htmlContent.replace(/<p><\/p>/g, '');
