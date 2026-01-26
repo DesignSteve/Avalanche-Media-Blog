@@ -737,14 +737,14 @@ const Admin = {
         const container = document.getElementById('articles-list');
         if (!container) return;
 
-        container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
+        container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
 
         const articles = await DB.getArticles();
         
         if (articles.length === 0) {
             container.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
                         No articles yet. Create your first article!
                     </td>
                 </tr>
@@ -754,10 +754,21 @@ const Admin = {
 
         let html = '';
         articles.forEach(article => {
+            const status = article.status || 'published';
+            let statusBadge = '';
+            if (status === 'draft') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #ffc107; color: #000;">📝 Draft</span>';
+            } else if (status === 'scheduled') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #17a2b8; color: #fff;">⏰ Scheduled</span>';
+            } else {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #28a745; color: #fff;">✓ Published</span>';
+            }
+            
             html += `
                 <tr>
                     <td>${Utils.truncate(article.title, 40)}</td>
                     <td><span class="article-category" style="position: static;">${article.category}</span></td>
+                    <td>${statusBadge}</td>
                     <td>${Utils.formatDate(article.createdAt)}</td>
                     <td>${article.views || 0}</td>
                     <td>
@@ -781,6 +792,16 @@ const Admin = {
         });
     },
 
+    // Get articles (wrapper for DB.getArticles)
+    async getArticles() {
+        return await DB.getArticles();
+    },
+    
+    // Update article (wrapper for DB.updateArticle)
+    async updateArticle(id, data) {
+        return await DB.updateArticle(id, data);
+    },
+
     // Save article
     async saveArticle() {
         const form = document.getElementById('article-form');
@@ -790,6 +811,9 @@ const Admin = {
         // Disable button while saving
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
+        
+        // Get publish option (publish, draft, or schedule)
+        const publishOption = document.querySelector('input[name="publish-option"]:checked')?.value || 'publish';
         
         // Get image - either from base64 upload or URL
         let imageUrl = formData.get('image-base64') || formData.get('image') || '';
@@ -801,10 +825,35 @@ const Admin = {
             excerpt: formData.get('excerpt'),
             content: formData.get('content'),
             image: imageUrl,
-            author: formData.get('author') || 'Avalanche Media'
+            author: formData.get('author') || 'Avalanche Media',
+            status: publishOption === 'publish' ? 'published' : publishOption
         };
+        
+        // Handle scheduling
+        if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            
+            if (scheduleDate) {
+                article.scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+            }
+        }
+        
+        // Set published date for published articles
+        if (publishOption === 'publish') {
+            article.publishedAt = new Date().toISOString();
+        }
 
         const editId = form.dataset.editId;
+        
+        let successMessage = 'Article published successfully!';
+        if (publishOption === 'draft') {
+            successMessage = 'Article saved as draft!';
+        } else if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            successMessage = `Article scheduled for ${scheduleDate} at ${scheduleTime}!`;
+        }
         
         if (editId) {
             await DB.updateArticle(editId, article);
@@ -812,16 +861,25 @@ const Admin = {
             delete form.dataset.editId;
         } else {
             const newArticle = await DB.addArticle(article);
-            Utils.showToast('Article published successfully!');
+            Utils.showToast(successMessage);
             
-            // Send email notifications to subscribers
-            await this.notifySubscribers(article);
+            // Only send email notifications for published articles
+            if (publishOption === 'publish') {
+                await this.notifySubscribers(article);
+            }
         }
 
         form.reset();
         // Clear image preview
         document.getElementById('image-preview').innerHTML = '';
         document.getElementById('image-base64').value = '';
+        
+        // Reset publish option to "Publish Now"
+        const publishNowRadio = document.querySelector('input[name="publish-option"][value="publish"]');
+        if (publishNowRadio) {
+            publishNowRadio.checked = true;
+            document.getElementById('schedule-options').style.display = 'none';
+        }
         
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
@@ -830,13 +888,17 @@ const Admin = {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            Publish Article
+            <span id="submit-btn-text">Publish Article</span>
         `;
         
         this.loadArticlesList();
         
-        // Switch to articles tab
-        document.querySelector('[data-tab="articles"]')?.click();
+        // Switch to appropriate tab
+        if (publishOption === 'draft' || publishOption === 'schedule') {
+            document.querySelector('[data-tab="drafts"]')?.click();
+        } else {
+            document.querySelector('[data-tab="articles"]')?.click();
+        }
     },
     
     // Send email notifications to all subscribers using Brevo
@@ -1004,11 +1066,14 @@ const App = {
         const articleContent = document.getElementById('article-content');
         const popularPosts = document.getElementById('popular-posts');
 
-        const articles = await DB.getArticles();
+        let articles = await DB.getArticles();
+        
+        // Filter to only show published articles on public pages
+        const publishedArticles = articles.filter(a => !a.status || a.status === 'published');
 
-        // Home page - articles grid
+        // Home page - articles grid (only published)
         if (articlesGrid) {
-            ArticleRenderer.renderGrid(articles, articlesGrid);
+            ArticleRenderer.renderGrid(publishedArticles, articlesGrid);
         }
 
         // Article page
@@ -1016,7 +1081,8 @@ const App = {
             const params = Utils.getUrlParams();
             const article = await DB.getArticleBySlug(params.slug);
             
-            if (article) {
+            // Only show if published (or no status - for backward compatibility)
+            if (article && (!article.status || article.status === 'published')) {
                 await DB.incrementViews(article.id);
                 ArticleRenderer.renderFullArticle(article, articleContent);
             } else {
@@ -1030,9 +1096,9 @@ const App = {
             }
         }
 
-        // Popular posts sidebar
+        // Popular posts sidebar (only published)
         if (popularPosts) {
-            ArticleRenderer.renderPopularPosts(articles, popularPosts);
+            ArticleRenderer.renderPopularPosts(publishedArticles, popularPosts);
         }
     },
 
@@ -1049,9 +1115,10 @@ const App = {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Filter articles
+                // Filter articles (only published)
                 const category = btn.dataset.category;
                 let articles = await DB.getArticles();
+                articles = articles.filter(a => !a.status || a.status === 'published');
                 
                 if (category !== 'all') {
                     articles = articles.filter(a => a.category === category);

@@ -419,6 +419,15 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" data-tab="drafts">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Drafts & Scheduled
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" data-tab="create">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -523,6 +532,7 @@
                                 <tr>
                                     <th>Title</th>
                                     <th>Category</th>
+                                    <th>Status</th>
                                     <th>Date</th>
                                     <th>Views</th>
                                     <th>Actions</th>
@@ -532,6 +542,47 @@
                                 <!-- Articles will be loaded here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                
+                <!-- Drafts & Scheduled Panel -->
+                <div class="admin-panel" id="drafts-panel">
+                    <h2 style="margin-bottom: 20px;">Drafts & <span style="color: var(--gold);">Scheduled</span></h2>
+                    
+                    <!-- Tabs for Drafts and Scheduled -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn" onclick="filterDrafts('draft')" id="filter-drafts-btn" style="background: var(--primary-red);">
+                            📝 Drafts (<span id="drafts-count">0</span>)
+                        </button>
+                        <button class="btn btn-secondary" onclick="filterDrafts('scheduled')" id="filter-scheduled-btn">
+                            ⏰ Scheduled (<span id="scheduled-count">0</span>)
+                        </button>
+                    </div>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="articles-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Scheduled For</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drafts-list">
+                                <!-- Drafts will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="no-drafts-message" style="display: none; text-align: center; padding: 40px; color: #666;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 15px; opacity: 0.5;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <p>No drafts or scheduled articles yet.</p>
+                        <a href="#" data-tab="create" class="btn" style="margin-top: 15px;" onclick="switchTab('create')">Create New Article</a>
                     </div>
                 </div>
                 
@@ -614,14 +665,51 @@ You can use simple formatting:
                             <p class="help-text">Supports basic Markdown formatting</p>
                         </div>
                         
+                        <!-- Publishing Options -->
+                        <div class="form-group" style="margin-top: 20px; padding: 20px; background: #f5f5eb; border-radius: 8px;">
+                            <label style="font-weight: 600; margin-bottom: 15px; display: block;">Publishing Options</label>
+                            
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="publish-option" value="publish" checked onchange="toggleScheduleOptions()">
+                                    <span>📤 Publish Now</span>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="publish-option" value="draft" onchange="toggleScheduleOptions()">
+                                    <span>📝 Save as Draft</span>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="publish-option" value="schedule" onchange="toggleScheduleOptions()">
+                                    <span>⏰ Schedule</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Schedule Date/Time (hidden by default) -->
+                            <div id="schedule-options" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label for="schedule-date">Date</label>
+                                        <input type="date" id="schedule-date" style="width: 100%;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label for="schedule-time">Time</label>
+                                        <input type="time" id="schedule-time" style="width: 100%;">
+                                    </div>
+                                </div>
+                                <p class="help-text" style="margin-top: 10px;">Article will be automatically published at the scheduled time.</p>
+                            </div>
+                        </div>
+                        
                         <div style="display: flex; gap: 15px; margin-top: 30px;">
-                            <button type="submit" class="btn">
+                            <button type="submit" class="btn" id="submit-btn">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
                                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                                     <polyline points="7 3 7 8 15 8"></polyline>
                                 </svg>
-                                Publish Article
+                                <span id="submit-btn-text">Publish Article</span>
                             </button>
                             <button type="reset" class="btn btn-secondary">Clear Form</button>
                         </div>
@@ -847,6 +935,149 @@ You can use simple formatting:
                 preview.innerHTML = '';
             }
         }
+        
+        // ============================================
+        // DRAFTS & SCHEDULING
+        // ============================================
+        
+        // Toggle schedule options visibility
+        function toggleScheduleOptions() {
+            const option = document.querySelector('input[name="publish-option"]:checked').value;
+            const scheduleOptions = document.getElementById('schedule-options');
+            const submitBtnText = document.getElementById('submit-btn-text');
+            
+            if (option === 'schedule') {
+                scheduleOptions.style.display = 'block';
+                submitBtnText.textContent = 'Schedule Article';
+                // Set default date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('schedule-date').value = tomorrow.toISOString().split('T')[0];
+                document.getElementById('schedule-time').value = '09:00';
+            } else {
+                scheduleOptions.style.display = 'none';
+                submitBtnText.textContent = option === 'draft' ? 'Save Draft' : 'Publish Article';
+            }
+        }
+        
+        // Filter drafts view
+        let currentDraftFilter = 'draft';
+        function filterDrafts(filter) {
+            currentDraftFilter = filter;
+            const draftsBtn = document.getElementById('filter-drafts-btn');
+            const scheduledBtn = document.getElementById('filter-scheduled-btn');
+            
+            if (filter === 'draft') {
+                draftsBtn.classList.remove('btn-secondary');
+                draftsBtn.style.background = 'var(--primary-red)';
+                scheduledBtn.classList.add('btn-secondary');
+                scheduledBtn.style.background = '';
+            } else {
+                scheduledBtn.classList.remove('btn-secondary');
+                scheduledBtn.style.background = 'var(--primary-red)';
+                draftsBtn.classList.add('btn-secondary');
+                draftsBtn.style.background = '';
+            }
+            
+            loadDraftsList();
+        }
+        
+        // Load drafts list
+        async function loadDraftsList() {
+            const draftsList = document.getElementById('drafts-list');
+            const noMessage = document.getElementById('no-drafts-message');
+            
+            if (!draftsList) return;
+            
+            try {
+                const articles = await Admin.getArticles();
+                const filtered = articles.filter(a => a.status === currentDraftFilter);
+                
+                // Update counts
+                const draftsCount = articles.filter(a => a.status === 'draft').length;
+                const scheduledCount = articles.filter(a => a.status === 'scheduled').length;
+                document.getElementById('drafts-count').textContent = draftsCount;
+                document.getElementById('scheduled-count').textContent = scheduledCount;
+                
+                if (filtered.length === 0) {
+                    draftsList.innerHTML = '';
+                    noMessage.style.display = 'block';
+                    return;
+                }
+                
+                noMessage.style.display = 'none';
+                draftsList.innerHTML = filtered.map(article => `
+                    <tr>
+                        <td>
+                            <strong>${article.title}</strong>
+                        </td>
+                        <td><span class="category-badge" style="background: var(--gold); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem;">${article.category}</span></td>
+                        <td>
+                            <span style="padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; background: ${article.status === 'draft' ? '#ffc107' : '#17a2b8'}; color: ${article.status === 'draft' ? '#000' : '#fff'};">
+                                ${article.status === 'draft' ? '📝 Draft' : '⏰ Scheduled'}
+                            </span>
+                        </td>
+                        <td>${article.scheduledFor ? new Date(article.scheduledFor).toLocaleString() : '-'}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="editArticle('${article.id}')" class="btn-small" title="Edit">✏️</button>
+                                <button onclick="publishNow('${article.id}')" class="btn-small" style="background: #28a745;" title="Publish Now">📤</button>
+                                <button onclick="deleteArticle('${article.id}')" class="btn-small" style="background: #dc3545;" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading drafts:', error);
+                draftsList.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Error loading drafts</td></tr>';
+            }
+        }
+        
+        // Publish a draft immediately
+        async function publishNow(articleId) {
+            if (!confirm('Publish this article now?')) return;
+            
+            try {
+                await Admin.updateArticle(articleId, { 
+                    status: 'published',
+                    publishedAt: new Date().toISOString(),
+                    scheduledFor: null
+                });
+                alert('Article published successfully!');
+                loadDraftsList();
+                loadArticlesList();
+            } catch (error) {
+                console.error('Error publishing:', error);
+                alert('Error publishing article');
+            }
+        }
+        
+        // Check for scheduled articles that need to be published
+        async function checkScheduledArticles() {
+            try {
+                const articles = await Admin.getArticles();
+                const now = new Date();
+                
+                for (const article of articles) {
+                    if (article.status === 'scheduled' && article.scheduledFor) {
+                        const scheduledTime = new Date(article.scheduledFor);
+                        if (scheduledTime <= now) {
+                            // Auto-publish
+                            await Admin.updateArticle(article.id, {
+                                status: 'published',
+                                publishedAt: new Date().toISOString()
+                            });
+                            console.log('Auto-published:', article.title);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking scheduled articles:', error);
+            }
+        }
+        
+        // Check scheduled articles every minute
+        setInterval(checkScheduledArticles, 60000);
         
         // ============================================
         // EBOOK / ADS MANAGEMENT
