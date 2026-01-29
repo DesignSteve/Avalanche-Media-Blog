@@ -611,6 +611,12 @@ const ArticleRenderer = {
         // Update page title
         document.title = `${article.title} | Avalanche Media`;
         
+        // Update canonical URL for SEO
+        const canonicalUrl = document.getElementById('canonical-url');
+        if (canonicalUrl) {
+            canonicalUrl.href = `https://avalanchemediablog.com/article.html?slug=${article.slug}`;
+        }
+        
         // Load comments
         App.loadComments(article.id);
     },
@@ -1069,7 +1075,11 @@ const App = {
         let articles = await DB.getArticles();
         
         // Filter to only show published articles on public pages
-        const publishedArticles = articles.filter(a => !a.status || a.status === 'published');
+        // Show articles that are: published, have no status (old articles), or status is empty/undefined
+        const publishedArticles = articles.filter(a => {
+            const status = (a.status || '').toLowerCase();
+            return !status || status === 'published' || status === 'publish';
+        });
 
         // Home page - articles grid (only published)
         if (articlesGrid) {
@@ -1082,7 +1092,10 @@ const App = {
             const article = await DB.getArticleBySlug(params.slug);
             
             // Only show if published (or no status - for backward compatibility)
-            if (article && (!article.status || article.status === 'published')) {
+            const articleStatus = (article?.status || '').toLowerCase();
+            const isPublished = !articleStatus || articleStatus === 'published' || articleStatus === 'publish';
+            
+            if (article && isPublished) {
                 await DB.incrementViews(article.id);
                 ArticleRenderer.renderFullArticle(article, articleContent);
             } else {
@@ -1118,7 +1131,12 @@ const App = {
                 // Filter articles (only published)
                 const category = btn.dataset.category;
                 let articles = await DB.getArticles();
-                articles = articles.filter(a => !a.status || a.status === 'published');
+                
+                // Filter to only published articles
+                articles = articles.filter(a => {
+                    const status = (a.status || '').toLowerCase();
+                    return !status || status === 'published' || status === 'publish';
+                });
                 
                 if (category !== 'all') {
                     articles = articles.filter(a => a.category === category);
