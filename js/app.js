@@ -226,7 +226,8 @@ const DB = {
         }
     }
 };
-
+// Make DB available globally for debugging
+window.DB = DB;
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
