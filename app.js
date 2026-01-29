@@ -8,7 +8,7 @@
 // FIREBASE CONFIGURATION
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB9_opVhLABVhRH4naU7deKcNXPZZxn0gE",
@@ -22,6 +22,74 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+
+// ============================================
+// SITE SETTINGS (Firebase Firestore)
+// ============================================
+const SiteSettings = {
+    // Save eBook settings to Firebase
+    async saveEbookSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving eBook settings:', error);
+            return false;
+        }
+    },
+    
+    // Get eBook settings from Firebase
+    async getEbookSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting eBook settings:', error);
+            return null;
+        }
+    },
+    
+    // Save banner settings to Firebase
+    async saveBannerSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving banner settings:', error);
+            return false;
+        }
+    },
+    
+    // Get banner settings from Firebase
+    async getBannerSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting banner settings:', error);
+            return null;
+        }
+    }
+};
+
+// Make SiteSettings available globally
+window.SiteSettings = SiteSettings;
 
 // ============================================
 // DATA STORE (Firebase Firestore)
@@ -112,13 +180,47 @@ const DB = {
         }
     },
 
-    // Increment view count
+    // Increment view count (excludes admin devices)
     async incrementViews(id) {
         try {
+            // Check if user is admin (logged in to admin panel)
+            const isAdmin = sessionStorage.getItem('adminLoggedIn') === 'true';
+            
+            // Check if this device is marked as admin device
+            const isAdminDevice = localStorage.getItem('isAdminDevice') === 'true';
+            
+            // Don't count views from admin
+            if (isAdmin || isAdminDevice) {
+                console.log('Admin view - not counted');
+                return;
+            }
+            
+            // Check if user already viewed this article (prevent multiple counts)
+            const viewedArticles = JSON.parse(localStorage.getItem('viewedArticles') || '[]');
+            const viewKey = `${id}-${new Date().toDateString()}`;
+            
+            if (viewedArticles.includes(viewKey)) {
+                console.log('Already viewed today - not counted');
+                return;
+            }
+            
+            // Add to viewed articles
+            viewedArticles.push(viewKey);
+            localStorage.setItem('viewedArticles', JSON.stringify(viewedArticles));
+            
+            // Increment in Firebase
             const articleRef = doc(db, 'articles', id);
             await updateDoc(articleRef, {
                 views: increment(1)
             });
+            
+            // Track monthly views
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+            const monthlyData = JSON.parse(localStorage.getItem('monthlyViews') || '{}');
+            monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+            localStorage.setItem('monthlyViews', JSON.stringify(monthlyData));
+            
         } catch (error) {
             console.error('Error incrementing views:', error);
         }
@@ -321,6 +423,76 @@ const ArticleRenderer = {
         const articleUrl = encodeURIComponent(window.location.href);
         const articleTitle = encodeURIComponent(article.title);
         
+        // Update page title and meta tags for SEO
+        document.title = `${article.title} | Avalanche Media`;
+        document.querySelector('meta[name="description"]').setAttribute('content', article.excerpt || article.content.substring(0, 160));
+        
+        // Update Open Graph meta tags
+        const ogTags = {
+            'og:title': article.title,
+            'og:description': article.excerpt || article.content.substring(0, 160),
+            'og:image': article.image || 'https://avalanchemediablog.com/images/banner.png',
+            'og:url': window.location.href
+        };
+        
+        for (const [property, content] of Object.entries(ogTags)) {
+            let meta = document.querySelector(`meta[property="${property}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('property', property);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Twitter meta tags
+        const twitterTags = {
+            'twitter:title': article.title,
+            'twitter:description': article.excerpt || article.content.substring(0, 160),
+            'twitter:image': article.image || 'https://avalanchemediablog.com/images/banner.png'
+        };
+        
+        for (const [name, content] of Object.entries(twitterTags)) {
+            let meta = document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('name', name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Article Schema
+        const schemaScript = document.getElementById('article-schema');
+        if (schemaScript) {
+            const schema = {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": article.title,
+                "description": article.excerpt || article.content.substring(0, 160),
+                "image": article.image || "https://avalanchemediablog.com/images/banner.png",
+                "datePublished": article.createdAt,
+                "dateModified": article.updatedAt || article.createdAt,
+                "author": {
+                    "@type": "Person",
+                    "name": article.author || "Avalanche Media"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Avalanche Media",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://avalanchemediablog.com/images/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": window.location.href
+                }
+            };
+            schemaScript.textContent = JSON.stringify(schema);
+        }
+        
         // Convert markdown-like content to HTML
         let htmlContent = article.content
             .replace(/\n\n/g, '</p><p>')
@@ -328,7 +500,13 @@ const ArticleRenderer = {
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/^## (.*$)/gm, '</p><h2>$1</h2><p>')
             .replace(/^### (.*$)/gm, '</p><h3>$1</h3><p>')
-            .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>');
+            .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+            // YouTube video embeds - convert YouTube URLs to embedded players
+            .replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s<]*)/g, 
+                '</p><div class="video-embed"><iframe width="100%" height="400" src="https://www.youtube.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><p>')
+            // Auto-link URLs (but not ones already in href or YouTube embeds)
+            .replace(/(?<!href="|src="|">)(https?:\/\/(?!www\.youtube\.com|youtu\.be)[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         
         htmlContent = '<p>' + htmlContent + '</p>';
         htmlContent = htmlContent.replace(/<p><\/p>/g, '');
@@ -433,6 +611,12 @@ const ArticleRenderer = {
         // Update page title
         document.title = `${article.title} | Avalanche Media`;
         
+        // Update canonical URL for SEO
+        const canonicalUrl = document.getElementById('canonical-url');
+        if (canonicalUrl) {
+            canonicalUrl.href = `https://avalanchemediablog.com/article.html?slug=${article.slug}`;
+        }
+        
         // Load comments
         App.loadComments(article.id);
     },
@@ -474,7 +658,84 @@ const Admin = {
     // Initialize admin panel
     init() {
         this.loadArticlesList();
+        this.loadDashboardStats();
         this.setupForm();
+    },
+
+    // Load dashboard statistics
+    async loadDashboardStats() {
+        const articles = await DB.getArticles();
+        
+        // Total articles
+        const totalArticles = articles.length;
+        const statTotal = document.getElementById('stat-total');
+        if (statTotal) statTotal.textContent = totalArticles;
+        
+        // Total views (sum of all article views)
+        const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
+        const statViews = document.getElementById('stat-views');
+        if (statViews) statViews.textContent = totalViews.toLocaleString();
+        
+        // This month's articles
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        
+        // Count articles created this month
+        const articlesThisMonth = articles.filter(article => {
+            const articleDate = new Date(article.createdAt);
+            return articleDate.getMonth() === thisMonth && articleDate.getFullYear() === thisYear;
+        }).length;
+        
+        // Get monthly views from localStorage
+        const monthKey = `${thisYear}-${thisMonth}`;
+        const monthlyData = JSON.parse(localStorage.getItem('monthlyViews') || '{}');
+        const monthlyViews = monthlyData[monthKey] || 0;
+        
+        const statMonth = document.getElementById('stat-month');
+        if (statMonth) statMonth.textContent = monthlyViews.toLocaleString();
+        
+        // Update categories count
+        const statCategories = document.getElementById('stat-categories');
+        if (statCategories) {
+            const uniqueCategories = [...new Set(articles.map(a => a.category))].length;
+            statCategories.textContent = uniqueCategories || 5;
+        }
+        
+        // Load recent articles for dashboard
+        this.loadRecentArticlesAdmin(articles.slice(0, 5));
+    },
+    
+    // Load recent articles for admin dashboard
+    loadRecentArticlesAdmin(articles) {
+        const container = document.getElementById('recent-articles-admin');
+        if (!container) return;
+        
+        if (articles.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No articles yet. Create your first article!</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        articles.forEach(article => {
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f5f5eb; border-radius: 8px; border-left: 4px solid #8B0000;">
+                    <div>
+                        <strong style="font-size: 0.95rem; color: #111;">${Utils.truncate(article.title, 45)}</strong>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                            <span style="background: #8B0000; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 0.7rem;">${article.category}</span>
+                            <span style="margin-left: 10px;">${Utils.formatDate(article.createdAt)}</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 1.1rem; color: #8B0000; font-weight: 700;">${(article.views || 0).toLocaleString()}</span>
+                        <span style="display: block; font-size: 0.75rem; color: #666;">views</span>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
     },
 
     // Load articles list for admin
@@ -482,14 +743,14 @@ const Admin = {
         const container = document.getElementById('articles-list');
         if (!container) return;
 
-        container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
+        container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
 
         const articles = await DB.getArticles();
         
         if (articles.length === 0) {
             container.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
                         No articles yet. Create your first article!
                     </td>
                 </tr>
@@ -499,10 +760,21 @@ const Admin = {
 
         let html = '';
         articles.forEach(article => {
+            const status = article.status || 'published';
+            let statusBadge = '';
+            if (status === 'draft') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #ffc107; color: #000;">📝 Draft</span>';
+            } else if (status === 'scheduled') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #17a2b8; color: #fff;">⏰ Scheduled</span>';
+            } else {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #28a745; color: #fff;">✓ Published</span>';
+            }
+            
             html += `
                 <tr>
                     <td>${Utils.truncate(article.title, 40)}</td>
                     <td><span class="article-category" style="position: static;">${article.category}</span></td>
+                    <td>${statusBadge}</td>
                     <td>${Utils.formatDate(article.createdAt)}</td>
                     <td>${article.views || 0}</td>
                     <td>
@@ -526,6 +798,16 @@ const Admin = {
         });
     },
 
+    // Get articles (wrapper for DB.getArticles)
+    async getArticles() {
+        return await DB.getArticles();
+    },
+    
+    // Update article (wrapper for DB.updateArticle)
+    async updateArticle(id, data) {
+        return await DB.updateArticle(id, data);
+    },
+
     // Save article
     async saveArticle() {
         const form = document.getElementById('article-form');
@@ -536,17 +818,48 @@ const Admin = {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
         
+        // Get publish option (publish, draft, or schedule)
+        const publishOption = document.querySelector('input[name="publish-option"]:checked')?.value || 'publish';
+        
+        // Get image - either from base64 upload or URL
+        let imageUrl = formData.get('image-base64') || formData.get('image') || '';
+        
         const article = {
             title: formData.get('title'),
             slug: Utils.createSlug(formData.get('title')),
             category: formData.get('category'),
             excerpt: formData.get('excerpt'),
             content: formData.get('content'),
-            image: formData.get('image'),
-            author: formData.get('author') || 'Avalanche Media'
+            image: imageUrl,
+            author: formData.get('author') || 'Avalanche Media',
+            status: publishOption === 'publish' ? 'published' : publishOption
         };
+        
+        // Handle scheduling
+        if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            
+            if (scheduleDate) {
+                article.scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+            }
+        }
+        
+        // Set published date for published articles
+        if (publishOption === 'publish') {
+            article.publishedAt = new Date().toISOString();
+        }
 
         const editId = form.dataset.editId;
+        
+        let successMessage = 'Article published successfully!';
+        if (publishOption === 'draft') {
+            successMessage = 'Article saved as draft!';
+        } else if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            successMessage = `Article scheduled for ${scheduleDate} at ${scheduleTime}!`;
+        }
         
         if (editId) {
             await DB.updateArticle(editId, article);
@@ -554,13 +867,26 @@ const Admin = {
             delete form.dataset.editId;
         } else {
             const newArticle = await DB.addArticle(article);
-            Utils.showToast('Article published successfully!');
+            Utils.showToast(successMessage);
             
-            // Send email notifications to subscribers
-            await this.notifySubscribers(article);
+            // Only send email notifications for published articles
+            if (publishOption === 'publish') {
+                await this.notifySubscribers(article);
+            }
         }
 
         form.reset();
+        // Clear image preview
+        document.getElementById('image-preview').innerHTML = '';
+        document.getElementById('image-base64').value = '';
+        
+        // Reset publish option to "Publish Now"
+        const publishNowRadio = document.querySelector('input[name="publish-option"][value="publish"]');
+        if (publishNowRadio) {
+            publishNowRadio.checked = true;
+            document.getElementById('schedule-options').style.display = 'none';
+        }
+        
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
@@ -568,13 +894,17 @@ const Admin = {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            Publish Article
+            <span id="submit-btn-text">Publish Article</span>
         `;
         
         this.loadArticlesList();
         
-        // Switch to articles tab
-        document.querySelector('[data-tab="articles"]')?.click();
+        // Switch to appropriate tab
+        if (publishOption === 'draft' || publishOption === 'schedule') {
+            document.querySelector('[data-tab="drafts"]')?.click();
+        } else {
+            document.querySelector('[data-tab="articles"]')?.click();
+        }
     },
     
     // Send email notifications to all subscribers using Brevo
@@ -742,11 +1072,18 @@ const App = {
         const articleContent = document.getElementById('article-content');
         const popularPosts = document.getElementById('popular-posts');
 
-        const articles = await DB.getArticles();
+        let articles = await DB.getArticles();
+        
+        // Filter to only show published articles on public pages
+        // Show articles that are: published, have no status (old articles), or status is empty/undefined
+        const publishedArticles = articles.filter(a => {
+            const status = (a.status || '').toLowerCase();
+            return !status || status === 'published' || status === 'publish';
+        });
 
-        // Home page - articles grid
+        // Home page - articles grid (only published)
         if (articlesGrid) {
-            ArticleRenderer.renderGrid(articles, articlesGrid);
+            ArticleRenderer.renderGrid(publishedArticles, articlesGrid);
         }
 
         // Article page
@@ -754,7 +1091,11 @@ const App = {
             const params = Utils.getUrlParams();
             const article = await DB.getArticleBySlug(params.slug);
             
-            if (article) {
+            // Only show if published (or no status - for backward compatibility)
+            const articleStatus = (article?.status || '').toLowerCase();
+            const isPublished = !articleStatus || articleStatus === 'published' || articleStatus === 'publish';
+            
+            if (article && isPublished) {
                 await DB.incrementViews(article.id);
                 ArticleRenderer.renderFullArticle(article, articleContent);
             } else {
@@ -768,9 +1109,9 @@ const App = {
             }
         }
 
-        // Popular posts sidebar
+        // Popular posts sidebar (only published)
         if (popularPosts) {
-            ArticleRenderer.renderPopularPosts(articles, popularPosts);
+            ArticleRenderer.renderPopularPosts(publishedArticles, popularPosts);
         }
     },
 
@@ -787,9 +1128,15 @@ const App = {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Filter articles
+                // Filter articles (only published)
                 const category = btn.dataset.category;
                 let articles = await DB.getArticles();
+                
+                // Filter to only published articles
+                articles = articles.filter(a => {
+                    const status = (a.status || '').toLowerCase();
+                    return !status || status === 'published' || status === 'publish';
+                });
                 
                 if (category !== 'all') {
                     articles = articles.filter(a => a.category === category);
@@ -1059,9 +1406,20 @@ const App = {
                 const isLiked = likedComments.includes(comment.id);
                 const commentIndex = index;
                 
+                // Get user initials for avatar
+                const nameParts = comment.name.trim().split(' ');
+                const initials = nameParts.length > 1 
+                    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                    : comment.name.substring(0, 2).toUpperCase();
+                
+                // Generate a consistent color based on the name
+                const colors = ['#8B0000', '#8B7500', '#2E7D32', '#1565C0', '#6A1B9A', '#C62828', '#00695C', '#4527A0'];
+                const colorIndex = comment.name.length % colors.length;
+                const avatarColor = colors[colorIndex];
+                
                 html += '<div class="comment" data-comment-id="' + comment.id + '" data-index="' + commentIndex + '">';
                 html += '<div class="comment-header">';
-                html += '<img src="images/logo.png" alt="' + comment.name + '" class="comment-avatar">';
+                html += '<div class="comment-avatar" style="background: ' + avatarColor + '; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem;">' + initials + '</div>';
                 html += '<div class="comment-info">';
                 html += '<strong class="comment-author">' + comment.name + '</strong>';
                 html += '<span class="comment-date">' + Utils.formatDate(comment.createdAt);
