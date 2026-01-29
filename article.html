@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary SEO Meta Tags (will be updated dynamically) -->
     <meta name="description" content="Avalanche Media - Political Commentary, Review, Analysis & Political Happenings">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Avalanche Media">
+    
+    <!-- Canonical URL (will be updated dynamically) -->
+    <link rel="canonical" href="https://avalanchemediablog.com/article.html" id="canonical-url">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#8B0000">
@@ -15,6 +22,14 @@
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="images/icon-152.png">
     
+    <!-- Open Graph (will be updated dynamically) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Avalanche Media">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card (will be updated dynamically) -->
+    <meta name="twitter:card" content="summary_large_image">
+    
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/logo.png">
     
@@ -22,6 +37,22 @@
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Article Schema (will be populated by JavaScript) -->
+    <script type="application/ld+json" id="article-schema">
+    {
+        "@context": "https://schema.org",
+        "@type": "NewsArticle",
+        "publisher": {
+            "@type": "Organization",
+            "name": "Avalanche Media",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://avalanchemediablog.com/images/logo.png"
+            }
+        }
+    }
+    </script>
 </head>
 <body>
     <!-- Header -->
@@ -147,6 +178,7 @@
                 <div class="footer-legal">
                     <a href="privacy.html">Privacy Policy</a>
                     <a href="terms.html">Terms of Service</a>
+                    <a href="affiliate-disclosure.html">Affiliate Disclosure</a>
                 </div>
             </div>
         </div>
