@@ -901,22 +901,82 @@ You can use simple formatting:
             }
         }
         
-        // Preview uploaded image
-        function previewUploadedImage(input) {
+        // Compress image to reduce size for Firebase storage
+        function compressImage(file, maxWidth = 800, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Calculate new dimensions
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convert to compressed base64
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressedBase64);
+                    };
+                    
+                    img.onerror = function() {
+                        reject(new Error('Failed to load image'));
+                    };
+                };
+                
+                reader.onerror = function() {
+                    reject(new Error('Failed to read file'));
+                };
+            });
+        }
+        
+        // Preview uploaded image (with compression)
+        async function previewUploadedImage(input) {
             const preview = document.getElementById('image-preview');
             const base64Input = document.getElementById('image-base64');
             
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                const reader = new FileReader();
                 
-                reader.onload = function(e) {
-                    const base64 = e.target.result;
-                    preview.innerHTML = '<img src="' + base64 + '" alt="Preview">';
-                    base64Input.value = base64;
-                };
+                // Show loading state
+                preview.innerHTML = '<p style="color: #666;">Compressing image...</p>';
                 
-                reader.readAsDataURL(file);
+                try {
+                    // Compress the image
+                    const compressedBase64 = await compressImage(file, 800, 0.7);
+                    
+                    preview.innerHTML = '<img src="' + compressedBase64 + '" alt="Preview">';
+                    base64Input.value = compressedBase64;
+                    
+                    // Show size info
+                    const originalSize = (file.size / 1024).toFixed(1);
+                    const compressedSize = (compressedBase64.length * 0.75 / 1024).toFixed(1);
+                    console.log(`Image compressed: ${originalSize}KB → ${compressedSize}KB`);
+                    
+                } catch (error) {
+                    console.error('Error compressing image:', error);
+                    // Fallback to original if compression fails
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
+                        base64Input.value = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
             } else {
                 preview.innerHTML = '';
                 base64Input.value = '';
