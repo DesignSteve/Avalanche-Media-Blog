@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Terms of Service - Avalanche Media">
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#8B0000">
-    <link rel="manifest" href="manifest.json">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8348194841655206"
+         crossorigin="anonymous"></script>
+    
+    <!-- Primary SEO Meta Tags -->
+    <meta name="title" content="Terms of Service | Avalanche Media">
+    <meta name="description" content="Terms of Service for Avalanche Media - Read our terms and conditions for using our political commentary and analysis website.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Avalanche Media">
+    <link rel="canonical" href="https://avalanchemediablog.com/terms.html">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/logo.png">
@@ -18,82 +24,72 @@
     <link rel="stylesheet" href="css/style.css">
     
     <style>
-        .policy-page {
-            padding-top: 100px;
-            padding-bottom: 60px;
-            background: #FFFFFF;
-            min-height: 100vh;
-        }
-        
-        .policy-container {
+        .legal-content {
             max-width: 800px;
             margin: 0 auto;
             padding: 40px 20px;
         }
         
-        .policy-container h1 {
-            color: #8B0000;
+        .legal-content h1 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--primary-red);
             margin-bottom: 10px;
-            margin-top: 40px;
-            font-size: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
         }
         
-        .policy-date {
-            color: #666;
+        .legal-content .last-updated {
+            color: var(--text-muted);
             font-size: 0.9rem;
             margin-bottom: 40px;
         }
         
-        .policy-container h2 {
-            color: #111;
-            font-size: 1.4rem;
-            margin-top: 35px;
-            margin-bottom: 15px;
+        .legal-content h2 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin: 35px 0 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #8B0000;
+            border-bottom: 2px solid var(--gold);
         }
         
-        .policy-container p,
-        .policy-container li {
-            color: #333;
-            font-size: 1rem;
+        .legal-content p {
+            color: var(--text-secondary);
             line-height: 1.8;
             margin-bottom: 15px;
-            font-family: 'Open Sans', sans-serif;
         }
         
-        .policy-container ul {
+        .legal-content ul {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin: 15px 0;
             padding-left: 25px;
-            margin-bottom: 20px;
         }
         
-        .policy-container li {
+        .legal-content li {
             margin-bottom: 10px;
         }
         
-        .policy-container a {
-            color: #8B0000;
+        .legal-content a {
+            color: var(--primary-red);
+            text-decoration: none;
+        }
+        
+        .legal-content a:hover {
             text-decoration: underline;
         }
         
-        .policy-container a:hover {
-            color: #6B0000;
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-red);
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-decoration: none;
         }
         
-        .contact-box {
-            background: #f5f5eb;
-            padding: 20px 25px;
-            border-radius: 8px;
-            margin-top: 30px;
-            border-left: 4px solid #8B0000;
-        }
-        
-        .contact-box h3 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #111;
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -103,150 +99,167 @@
         <div class="container">
             <div class="header-inner">
                 <a href="index.html" class="logo">
-                    <img src="images/logo.png" alt="Avalanche Media Logo">
-                    <span class="logo-text">
-                        <span>AVALANCHE</span><span>MEDIA</span>
-                    </span>
+                    <img src="images/logo.png" alt="Avalanche Media Logo" class="logo-img">
+                    <span class="logo-text">AVALANCHE<span>MEDIA</span></span>
                 </a>
-                
                 <nav class="nav">
-                    <ul class="nav-links">
+                    <ul class="nav-menu">
                         <li><a href="index.html">Home</a></li>
                         <li><a href="index.html#articles">Articles</a></li>
                         <li><a href="index.html#about">About</a></li>
                     </ul>
-                    
-                    <a href="https://www.youtube.com/@avalanchemedia" target="_blank" class="youtube-btn">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </nav>
+                <div class="header-actions">
+                    <a href="https://www.youtube.com/@avalanchemedia" target="_blank" class="btn btn-youtube">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                            <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
                         </svg>
                         YouTube
                     </a>
-                </nav>
-                
-                <button class="menu-toggle" aria-label="Toggle Menu">
+                </div>
+                <button class="mobile-toggle" aria-label="Toggle menu">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
             </div>
         </div>
-        
-        <!-- Mobile Menu -->
-        <div class="mobile-menu">
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#articles">Articles</a></li>
-                <li><a href="index.html#about">About</a></li>
-                <li><a href="https://www.youtube.com/@avalanchemedia" target="_blank">YouTube</a></li>
-            </ul>
-        </div>
     </header>
 
-    <!-- Terms of Service Content -->
-    <main class="policy-page">
-        <div class="policy-container">
-            <h1>Terms of Service</h1>
-            <p class="policy-date">Last updated: January 23, 2026</p>
-            
-            <p>Welcome to Avalanche Media. These Terms of Service ("Terms") govern your use of our website <strong>avalanchemediablog.com</strong> (the "Site") operated by Avalanche Media ("we," "our," or "us"). By accessing or using our Site, you agree to be bound by these Terms.</p>
-            
-            <h2>1. Acceptance of Terms</h2>
-            <p>By accessing and using this Site, you accept and agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, please do not use our Site.</p>
-            
-            <h2>2. Use of the Site</h2>
-            <p>You may use our Site for lawful purposes only. You agree not to:</p>
-            <ul>
-                <li>Use the Site in any way that violates any applicable law or regulation</li>
-                <li>Engage in any conduct that restricts or inhibits anyone's use of the Site</li>
-                <li>Use the Site to transmit any harmful, offensive, or illegal content</li>
-                <li>Attempt to gain unauthorized access to any part of the Site</li>
-                <li>Use automated systems or software to extract data from the Site (scraping)</li>
-                <li>Impersonate any person or entity or misrepresent your affiliation</li>
-            </ul>
-            
-            <h2>3. Intellectual Property</h2>
-            <p>All content on this Site, including but not limited to text, graphics, logos, images, audio clips, video clips, and software, is the property of Avalanche Media or its content suppliers and is protected by copyright laws.</p>
-            <p>You may not reproduce, distribute, modify, create derivative works of, publicly display, or exploit any content from this Site without our prior written permission.</p>
-            
-            <h2>4. User Comments</h2>
-            <p>Our Site may allow you to post comments on articles. By posting a comment, you agree that:</p>
-            <ul>
-                <li>You are responsible for the content of your comments</li>
-                <li>Your comments will not contain defamatory, offensive, or illegal material</li>
-                <li>Your comments will not infringe on any third party's rights</li>
-                <li>We reserve the right to remove any comment at our discretion</li>
-                <li>We may edit or delete comments that violate these Terms</li>
-            </ul>
-            <p>By posting comments, you grant us a non-exclusive, royalty-free, perpetual license to use, reproduce, and display your comments on our Site.</p>
-            
-            <h2>5. Third-Party Links</h2>
-            <p>Our Site may contain links to third-party websites or services that are not owned or controlled by Avalanche Media. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites or services.</p>
-            
-            <h2>6. Advertisements</h2>
-            <p>Our Site may display advertisements provided by third-party advertising networks, including Google AdSense. These advertisements may use cookies and similar technologies to serve relevant ads. Your interactions with these advertisements are subject to the third party's terms and privacy policies.</p>
-            
-            <h2>7. Disclaimer of Warranties</h2>
-            <p>The Site and its content are provided on an "as is" and "as available" basis without any warranties of any kind, either express or implied, including but not limited to:</p>
-            <ul>
-                <li>Warranties of merchantability or fitness for a particular purpose</li>
-                <li>Warranties that the Site will be uninterrupted or error-free</li>
-                <li>Warranties regarding the accuracy or reliability of any content</li>
-            </ul>
-            
-            <h2>8. Limitation of Liability</h2>
-            <p>To the fullest extent permitted by law, Avalanche Media shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of the Site, including but not limited to:</p>
-            <ul>
-                <li>Loss of profits, data, or goodwill</li>
-                <li>Service interruption or computer damage</li>
-                <li>Any damages resulting from third-party content or links</li>
-            </ul>
-            
-            <h2>9. Indemnification</h2>
-            <p>You agree to indemnify, defend, and hold harmless Avalanche Media and its officers, directors, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Site or violation of these Terms.</p>
-            
-            <h2>10. Changes to Terms</h2>
-            <p>We reserve the right to modify these Terms at any time. We will notify you of any changes by posting the new Terms on this page and updating the "Last updated" date. Your continued use of the Site after any changes constitutes acceptance of the new Terms.</p>
-            
-            <h2>11. Termination</h2>
-            <p>We may terminate or suspend your access to the Site immediately, without prior notice, for any reason whatsoever, including without limitation if you breach these Terms.</p>
-            
-            <h2>12. Governing Law</h2>
-            <p>These Terms shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria, without regard to its conflict of law provisions.</p>
-            
-            <h2>13. Contact Us</h2>
-            <p>If you have any questions about these Terms, please contact us:</p>
-            
-            <div class="contact-box">
-                <h3>Avalanche Media</h3>
-                <p style="margin-bottom: 5px;"><strong>Email:</strong> <a href="mailto:avalanchemedia2022@gmail.com">avalanchemedia2022@gmail.com</a></p>
-                <p style="margin-bottom: 5px;"><strong>Website:</strong> <a href="https://avalanchemediablog.com">avalanchemediablog.com</a></p>
-            </div>
-        </div>
+    <!-- Main Content -->
+    <main class="legal-content">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Home
+        </a>
+        
+        <h1>Terms of Service</h1>
+        <p class="last-updated">Last Updated: February 9, 2026</p>
+        
+        <p>Welcome to Avalanche Media. By accessing or using our website at <a href="https://avalanchemediablog.com">avalanchemediablog.com</a>, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+        
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing and using Avalanche Media, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use this website.</p>
+        
+        <h2>2. Description of Service</h2>
+        <p>Avalanche Media provides political commentary, analysis, news coverage, and related content through our website and YouTube channel. Our content is intended for informational and educational purposes only.</p>
+        
+        <h2>3. User Conduct</h2>
+        <p>When using our website, you agree to:</p>
+        <ul>
+            <li>Use the website only for lawful purposes</li>
+            <li>Not post or transmit any unlawful, threatening, defamatory, or obscene material</li>
+            <li>Not interfere with the proper functioning of the website</li>
+            <li>Not attempt to gain unauthorized access to any portion of the website</li>
+            <li>Respect the intellectual property rights of Avalanche Media and third parties</li>
+        </ul>
+        
+        <h2>4. Intellectual Property</h2>
+        <p>All content on Avalanche Media, including but not limited to text, graphics, logos, images, audio clips, video clips, and software, is the property of Avalanche Media or its content suppliers and is protected by Nigerian and international copyright laws.</p>
+        <p>You may not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any of the material on our website without prior written consent.</p>
+        
+        <h2>5. User Comments and Submissions</h2>
+        <p>If you submit comments, feedback, or other content to our website, you grant Avalanche Media a non-exclusive, royalty-free, perpetual, and worldwide license to use, reproduce, modify, and distribute such content.</p>
+        <p>You are solely responsible for any content you submit and must ensure it does not violate any third-party rights or applicable laws.</p>
+        
+        <h2>6. Disclaimer of Warranties</h2>
+        <p>The content on Avalanche Media is provided "as is" without any warranties, express or implied. We do not warrant that:</p>
+        <ul>
+            <li>The website will be uninterrupted or error-free</li>
+            <li>Defects will be corrected</li>
+            <li>The website or server is free of viruses or harmful components</li>
+            <li>The content is accurate, complete, or current</li>
+        </ul>
+        
+        <h2>7. Limitation of Liability</h2>
+        <p>Avalanche Media shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising out of your access to or use of the website. This includes damages for loss of profits, goodwill, data, or other intangible losses.</p>
+        
+        <h2>8. Political Content Disclaimer</h2>
+        <p>The political opinions and analyses expressed on Avalanche Media are those of the individual authors and do not necessarily reflect the official position of Avalanche Media. Our content is intended to inform and encourage political discourse, not to endorse any particular political party, candidate, or ideology.</p>
+        
+        <h2>9. Third-Party Links</h2>
+        <p>Our website may contain links to third-party websites or services that are not owned or controlled by Avalanche Media. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites.</p>
+        
+        <h2>10. Affiliate Disclosure</h2>
+        <p>Some links on our website may be affiliate links. If you make a purchase through these links, we may earn a commission at no additional cost to you. Please read our <a href="affiliate-disclosure.html">Affiliate Disclosure</a> for more information.</p>
+        
+        <h2>11. Advertising</h2>
+        <p>Avalanche Media displays advertisements through Google AdSense and other advertising networks. These ads may use cookies to serve targeted advertisements. By using our website, you consent to such advertising practices.</p>
+        
+        <h2>12. Newsletter and Communications</h2>
+        <p>If you subscribe to our newsletter, you agree to receive periodic emails about new articles, updates, and promotional content. You can unsubscribe at any time by clicking the unsubscribe link in any email.</p>
+        
+        <h2>13. Modifications to Terms</h2>
+        <p>Avalanche Media reserves the right to modify these Terms of Service at any time. We will notify users of any significant changes by posting a notice on our website. Your continued use of the website after such modifications constitutes acceptance of the updated terms.</p>
+        
+        <h2>14. Governing Law</h2>
+        <p>These Terms of Service shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria, without regard to its conflict of law provisions.</p>
+        
+        <h2>15. Severability</h2>
+        <p>If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.</p>
+        
+        <h2>16. Contact Us</h2>
+        <p>If you have any questions about these Terms of Service, please contact us:</p>
+        <ul>
+            <li>Email: <a href="mailto:avalanchemedia2022@gmail.com">avalanchemedia2022@gmail.com</a></li>
+            <li>Website: <a href="https://avalanchemediablog.com">avalanchemediablog.com</a></li>
+            <li>YouTube: <a href="https://www.youtube.com/@avalanchemedia" target="_blank">youtube.com/@avalanchemedia</a></li>
+        </ul>
+        
+        <p style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+            By using Avalanche Media, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
+        </p>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <img src="images/logo.png" alt="Avalanche Media Logo">
+                    </a>
+                    <p>Your trusted source for political commentary, review, analysis, and coverage of political happenings.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#articles">Articles</a></li>
+                        <li><a href="index.html#about">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="affiliate-disclosure.html">Affiliate Disclosure</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="https://www.youtube.com/@avalanchemedia" target="_blank">YouTube</a></li>
+                        <li><a href="https://www.facebook.com/share/1FvBysr7xz/" target="_blank">Facebook</a></li>
+                        <li><a href="mailto:avalanchemedia2022@gmail.com">Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Avalanche Media. All rights reserved.</p>
-                <div class="footer-bottom-links">
+                <div class="footer-legal">
                     <a href="privacy.html">Privacy Policy</a>
                     <a href="terms.html">Terms of Service</a>
+                    <a href="affiliate-disclosure.html">Affiliate Disclosure</a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Mobile Menu Script -->
-    <script>
-        const menuToggle = document.querySelector('.menu-toggle');
-        const mobileMenu = document.querySelector('.mobile-menu');
-        
-        menuToggle.addEventListener('click', () => {
-            mobileMenu.classList.toggle('active');
-            menuToggle.classList.toggle('active');
-        });
-    </script>
+    <script src="js/app.js" type="module"></script>
 </body>
 </html>
