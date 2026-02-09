@@ -227,6 +227,9 @@ const DB = {
     }
 };
 
+// Make DB available globally for debugging
+window.DB = DB;
+
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
@@ -1066,11 +1069,17 @@ const App = {
         }
     },
 
+    // Pagination state
+    currentPage: 1,
+    articlesPerPage: 6,
+    allArticles: [],
+
     // Load content based on page
     async loadContent() {
         const articlesGrid = document.getElementById('articles-grid');
         const articleContent = document.getElementById('article-content');
         const popularPosts = document.getElementById('popular-posts');
+        const trendingGrid = document.getElementById('trending-grid');
 
         let articles = await DB.getArticles();
         
@@ -1080,10 +1089,19 @@ const App = {
             const status = (a.status || '').toLowerCase();
             return !status || status === 'published' || status === 'publish';
         });
+        
+        // Store all articles for pagination
+        this.allArticles = publishedArticles;
 
-        // Home page - articles grid (only published)
+        // Home page - Trending section (top 4 by views)
+        if (trendingGrid) {
+            this.renderTrending(publishedArticles, trendingGrid);
+        }
+
+        // Home page - articles grid with pagination (only published)
         if (articlesGrid) {
-            ArticleRenderer.renderGrid(publishedArticles, articlesGrid);
+            this.currentPage = 1;
+            this.renderArticlesWithPagination(publishedArticles, articlesGrid);
         }
 
         // Article page
@@ -1115,6 +1133,135 @@ const App = {
         }
     },
 
+    // Render trending articles
+    renderTrending(articles, container) {
+        if (!container) return;
+        
+        // Sort by views and get top 4
+        const trending = [...articles]
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .slice(0, 4);
+        
+        if (trending.length === 0) {
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center;">No trending articles yet.</p>';
+            return;
+        }
+        
+        let html = '';
+        trending.forEach((article, index) => {
+            const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
+            html += `
+                <div class="trending-card" onclick="App.viewArticle('${article.slug}')">
+                    <div class="trending-card-image">
+                        <img src="${imageUrl}" alt="${article.title}" loading="lazy" onerror="this.src='${Utils.getPlaceholderImage(article.category)}'">
+                        <span class="trending-badge">#${index + 1} Trending</span>
+                    </div>
+                    <div class="trending-card-content">
+                        <div class="trending-card-category">${article.category}</div>
+                        <h3 class="trending-card-title">${article.title}</h3>
+                        <div class="trending-card-meta">
+                            <span>${Utils.formatDate(article.createdAt)}</span>
+                            <span class="trending-card-views">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                                ${(article.views || 0).toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    },
+
+    // Render articles with pagination
+    renderArticlesWithPagination(articles, container) {
+        if (!container) return;
+        
+        const totalPages = Math.ceil(articles.length / this.articlesPerPage);
+        const startIndex = (this.currentPage - 1) * this.articlesPerPage;
+        const endIndex = startIndex + this.articlesPerPage;
+        const paginatedArticles = articles.slice(startIndex, endIndex);
+        
+        // Render articles
+        ArticleRenderer.renderGrid(paginatedArticles, container);
+        
+        // Render pagination
+        this.renderPagination(totalPages);
+    },
+
+    // Render pagination controls
+    renderPagination(totalPages) {
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer || totalPages <= 1) {
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Previous button
+        html += `<button class="pagination-btn nav-btn ${this.currentPage === 1 ? 'disabled' : ''}" 
+                    onclick="App.goToPage(${this.currentPage - 1})" 
+                    ${this.currentPage === 1 ? 'disabled' : ''}>
+                    ‹ Prev
+                </button>`;
+        
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        // First page
+        if (startPage > 1) {
+            html += `<button class="pagination-btn" onclick="App.goToPage(1)">1</button>`;
+            if (startPage > 2) {
+                html += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+        
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
+                        onclick="App.goToPage(${i})">${i}</button>`;
+        }
+        
+        // Last page
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<span class="pagination-ellipsis">...</span>`;
+            }
+            html += `<button class="pagination-btn" onclick="App.goToPage(${totalPages})">${totalPages}</button>`;
+        }
+        
+        // Next button
+        html += `<button class="pagination-btn nav-btn ${this.currentPage === totalPages ? 'disabled' : ''}" 
+                    onclick="App.goToPage(${this.currentPage + 1})"
+                    ${this.currentPage === totalPages ? 'disabled' : ''}>
+                    Next ›
+                </button>`;
+        
+        paginationContainer.innerHTML = html;
+    },
+
+    // Go to specific page
+    goToPage(page) {
+        const totalPages = Math.ceil(this.allArticles.length / this.articlesPerPage);
+        if (page < 1 || page > totalPages) return;
+        
+        this.currentPage = page;
+        const articlesGrid = document.getElementById('articles-grid');
+        this.renderArticlesWithPagination(this.allArticles, articlesGrid);
+        
+        // Scroll to articles section
+        document.getElementById('articles').scrollIntoView({ behavior: 'smooth' });
+    },
+
     // Setup category filters
     setupFilters() {
         const filterBtns = document.querySelectorAll('.filter-btn');
@@ -1142,7 +1289,10 @@ const App = {
                     articles = articles.filter(a => a.category === category);
                 }
 
-                ArticleRenderer.renderGrid(articles, articlesGrid);
+                // Update allArticles and reset pagination
+                this.allArticles = articles;
+                this.currentPage = 1;
+                this.renderArticlesWithPagination(articles, articlesGrid);
             });
         });
     },
