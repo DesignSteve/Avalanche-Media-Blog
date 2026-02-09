@@ -1137,9 +1137,15 @@ const App = {
     renderTrending(articles, container) {
         if (!container) return;
         
-        // Sort by views and get top 4
+        // Sort by views first, then by date (newest) if no views
         const trending = [...articles]
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .sort((a, b) => {
+                // First sort by views
+                const viewsDiff = (b.views || 0) - (a.views || 0);
+                if (viewsDiff !== 0) return viewsDiff;
+                // If same views, sort by date (newest first)
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            })
             .slice(0, 4);
         
         if (trending.length === 0) {
@@ -1151,13 +1157,13 @@ const App = {
         trending.forEach((article, index) => {
             const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
             html += `
-                <div class="trending-card" onclick="App.viewArticle('${article.slug}')">
+                <a href="article.html?slug=${article.slug}" class="trending-card">
                     <div class="trending-card-image">
                         <img src="${imageUrl}" alt="${article.title}" loading="lazy" onerror="this.src='${Utils.getPlaceholderImage(article.category)}'">
                         <span class="trending-badge">#${index + 1} Trending</span>
                     </div>
                     <div class="trending-card-content">
-                        <div class="trending-card-category">${article.category}</div>
+                        <div class="trending-card-category">${article.category || 'News'}</div>
                         <h3 class="trending-card-title">${article.title}</h3>
                         <div class="trending-card-meta">
                             <span>${Utils.formatDate(article.createdAt)}</span>
@@ -1169,7 +1175,7 @@ const App = {
                             </span>
                         </div>
                     </div>
-                </div>
+                </a>
             `;
         });
         container.innerHTML = html;
@@ -1677,6 +1683,10 @@ function setupAdminTabs() {
 // ============================================
 // INITIALIZE ON DOM READY
 // ============================================
+
+// Make App available globally for onclick handlers
+window.App = App;
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize main app on all pages
     App.init();
