@@ -8,7 +8,7 @@
 // FIREBASE CONFIGURATION
 // ============================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB9_opVhLABVhRH4naU7deKcNXPZZxn0gE",
@@ -22,6 +22,74 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+
+// ============================================
+// SITE SETTINGS (Firebase Firestore)
+// ============================================
+const SiteSettings = {
+    // Save eBook settings to Firebase
+    async saveEbookSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving eBook settings:', error);
+            return false;
+        }
+    },
+    
+    // Get eBook settings from Firebase
+    async getEbookSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'ebook');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting eBook settings:', error);
+            return null;
+        }
+    },
+    
+    // Save banner settings to Firebase
+    async saveBannerSettings(settings) {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            await setDoc(settingsRef, {
+                ...settings,
+                updatedAt: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            console.error('Error saving banner settings:', error);
+            return false;
+        }
+    },
+    
+    // Get banner settings from Firebase
+    async getBannerSettings() {
+        try {
+            const settingsRef = doc(db, 'siteSettings', 'banner');
+            const docSnap = await getDoc(settingsRef);
+            if (docSnap.exists()) {
+                return docSnap.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error getting banner settings:', error);
+            return null;
+        }
+    }
+};
+
+// Make SiteSettings available globally
+window.SiteSettings = SiteSettings;
 
 // ============================================
 // DATA STORE (Firebase Firestore)
@@ -158,6 +226,9 @@ const DB = {
         }
     }
 };
+
+// Make DB available globally for debugging
+window.DB = DB;
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -355,6 +426,76 @@ const ArticleRenderer = {
         const articleUrl = encodeURIComponent(window.location.href);
         const articleTitle = encodeURIComponent(article.title);
         
+        // Update page title and meta tags for SEO
+        document.title = `${article.title} | Avalanche Media`;
+        document.querySelector('meta[name="description"]').setAttribute('content', article.excerpt || article.content.substring(0, 160));
+        
+        // Update Open Graph meta tags
+        const ogTags = {
+            'og:title': article.title,
+            'og:description': article.excerpt || article.content.substring(0, 160),
+            'og:image': article.image || 'https://avalanchemediablog.com/images/banner.png',
+            'og:url': window.location.href
+        };
+        
+        for (const [property, content] of Object.entries(ogTags)) {
+            let meta = document.querySelector(`meta[property="${property}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('property', property);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Twitter meta tags
+        const twitterTags = {
+            'twitter:title': article.title,
+            'twitter:description': article.excerpt || article.content.substring(0, 160),
+            'twitter:image': article.image || 'https://avalanchemediablog.com/images/banner.png'
+        };
+        
+        for (const [name, content] of Object.entries(twitterTags)) {
+            let meta = document.querySelector(`meta[name="${name}"]`);
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.setAttribute('name', name);
+                document.head.appendChild(meta);
+            }
+            meta.setAttribute('content', content);
+        }
+        
+        // Update Article Schema
+        const schemaScript = document.getElementById('article-schema');
+        if (schemaScript) {
+            const schema = {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": article.title,
+                "description": article.excerpt || article.content.substring(0, 160),
+                "image": article.image || "https://avalanchemediablog.com/images/banner.png",
+                "datePublished": article.createdAt,
+                "dateModified": article.updatedAt || article.createdAt,
+                "author": {
+                    "@type": "Person",
+                    "name": article.author || "Avalanche Media"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Avalanche Media",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://avalanchemediablog.com/images/logo.png"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": window.location.href
+                }
+            };
+            schemaScript.textContent = JSON.stringify(schema);
+        }
+        
         // Convert markdown-like content to HTML
         let htmlContent = article.content
             .replace(/\n\n/g, '</p><p>')
@@ -364,7 +505,11 @@ const ArticleRenderer = {
             .replace(/^### (.*$)/gm, '</p><h3>$1</h3><p>')
             .replace(/^> (.*$)/gm, '</p><blockquote>$1</blockquote><p>')
             .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-            .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+            // YouTube video embeds - convert YouTube URLs to embedded players
+            .replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s<]*)/g, 
+                '</p><div class="video-embed"><iframe width="100%" height="400" src="https://www.youtube.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><p>')
+            // Auto-link URLs (but not ones already in href or YouTube embeds)
+            .replace(/(?<!href="|src="|">)(https?:\/\/(?!www\.youtube\.com|youtu\.be)[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
         
         htmlContent = '<p>' + htmlContent + '</p>';
         htmlContent = htmlContent.replace(/<p><\/p>/g, '');
@@ -468,6 +613,12 @@ const ArticleRenderer = {
 
         // Update page title
         document.title = `${article.title} | Avalanche Media`;
+        
+        // Update canonical URL for SEO
+        const canonicalUrl = document.getElementById('canonical-url');
+        if (canonicalUrl) {
+            canonicalUrl.href = `https://avalanchemediablog.com/article.html?slug=${article.slug}`;
+        }
         
         // Load comments
         App.loadComments(article.id);
@@ -595,14 +746,14 @@ const Admin = {
         const container = document.getElementById('articles-list');
         if (!container) return;
 
-        container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
+        container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="loading-spinner"></div></td></tr>';
 
         const articles = await DB.getArticles();
         
         if (articles.length === 0) {
             container.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
                         No articles yet. Create your first article!
                     </td>
                 </tr>
@@ -612,10 +763,21 @@ const Admin = {
 
         let html = '';
         articles.forEach(article => {
+            const status = article.status || 'published';
+            let statusBadge = '';
+            if (status === 'draft') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #ffc107; color: #000;">📝 Draft</span>';
+            } else if (status === 'scheduled') {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #17a2b8; color: #fff;">⏰ Scheduled</span>';
+            } else {
+                statusBadge = '<span style="padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; background: #28a745; color: #fff;">✓ Published</span>';
+            }
+            
             html += `
                 <tr>
                     <td>${Utils.truncate(article.title, 40)}</td>
                     <td><span class="article-category" style="position: static;">${article.category}</span></td>
+                    <td>${statusBadge}</td>
                     <td>${Utils.formatDate(article.createdAt)}</td>
                     <td>${article.views || 0}</td>
                     <td>
@@ -639,6 +801,16 @@ const Admin = {
         });
     },
 
+    // Get articles (wrapper for DB.getArticles)
+    async getArticles() {
+        return await DB.getArticles();
+    },
+    
+    // Update article (wrapper for DB.updateArticle)
+    async updateArticle(id, data) {
+        return await DB.updateArticle(id, data);
+    },
+
     // Save article
     async saveArticle() {
         const form = document.getElementById('article-form');
@@ -648,6 +820,9 @@ const Admin = {
         // Disable button while saving
         submitBtn.disabled = true;
         submitBtn.textContent = 'Saving...';
+        
+        // Get publish option (publish, draft, or schedule)
+        const publishOption = document.querySelector('input[name="publish-option"]:checked')?.value || 'publish';
         
         // Get image - either from base64 upload or URL
         let imageUrl = formData.get('image-base64') || formData.get('image') || '';
@@ -659,10 +834,35 @@ const Admin = {
             excerpt: formData.get('excerpt'),
             content: formData.get('content'),
             image: imageUrl,
-            author: formData.get('author') || 'Avalanche Media'
+            author: formData.get('author') || 'Avalanche Media',
+            status: publishOption === 'publish' ? 'published' : publishOption
         };
+        
+        // Handle scheduling
+        if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            
+            if (scheduleDate) {
+                article.scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+            }
+        }
+        
+        // Set published date for published articles
+        if (publishOption === 'publish') {
+            article.publishedAt = new Date().toISOString();
+        }
 
         const editId = form.dataset.editId;
+        
+        let successMessage = 'Article published successfully!';
+        if (publishOption === 'draft') {
+            successMessage = 'Article saved as draft!';
+        } else if (publishOption === 'schedule') {
+            const scheduleDate = document.getElementById('schedule-date')?.value;
+            const scheduleTime = document.getElementById('schedule-time')?.value || '09:00';
+            successMessage = `Article scheduled for ${scheduleDate} at ${scheduleTime}!`;
+        }
         
         if (editId) {
             await DB.updateArticle(editId, article);
@@ -670,16 +870,25 @@ const Admin = {
             delete form.dataset.editId;
         } else {
             const newArticle = await DB.addArticle(article);
-            Utils.showToast('Article published successfully!');
+            Utils.showToast(successMessage);
             
-            // Send email notifications to subscribers
-            await this.notifySubscribers(article);
+            // Only send email notifications for published articles
+            if (publishOption === 'publish') {
+                await this.notifySubscribers(article);
+            }
         }
 
         form.reset();
         // Clear image preview
         document.getElementById('image-preview').innerHTML = '';
         document.getElementById('image-base64').value = '';
+        
+        // Reset publish option to "Publish Now"
+        const publishNowRadio = document.querySelector('input[name="publish-option"][value="publish"]');
+        if (publishNowRadio) {
+            publishNowRadio.checked = true;
+            document.getElementById('schedule-options').style.display = 'none';
+        }
         
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
@@ -688,13 +897,17 @@ const Admin = {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            Publish Article
+            <span id="submit-btn-text">Publish Article</span>
         `;
         
         this.loadArticlesList();
         
-        // Switch to articles tab
-        document.querySelector('[data-tab="articles"]')?.click();
+        // Switch to appropriate tab
+        if (publishOption === 'draft' || publishOption === 'schedule') {
+            document.querySelector('[data-tab="drafts"]')?.click();
+        } else {
+            document.querySelector('[data-tab="articles"]')?.click();
+        }
     },
     
     // Send email notifications to all subscribers using Brevo
@@ -856,17 +1069,39 @@ const App = {
         }
     },
 
+    // Pagination state
+    currentPage: 1,
+    articlesPerPage: 6,
+    allArticles: [],
+
     // Load content based on page
     async loadContent() {
         const articlesGrid = document.getElementById('articles-grid');
         const articleContent = document.getElementById('article-content');
         const popularPosts = document.getElementById('popular-posts');
+        const trendingGrid = document.getElementById('trending-grid');
 
-        const articles = await DB.getArticles();
+        let articles = await DB.getArticles();
+        
+        // Filter to only show published articles on public pages
+        // Show articles that are: published, have no status (old articles), or status is empty/undefined
+        const publishedArticles = articles.filter(a => {
+            const status = (a.status || '').toLowerCase();
+            return !status || status === 'published' || status === 'publish';
+        });
+        
+        // Store all articles for pagination
+        this.allArticles = publishedArticles;
 
-        // Home page - articles grid
+        // Home page - Trending section (top 4 by views)
+        if (trendingGrid) {
+            this.renderTrending(publishedArticles, trendingGrid);
+        }
+
+        // Home page - articles grid with pagination (only published)
         if (articlesGrid) {
-            ArticleRenderer.renderGrid(articles, articlesGrid);
+            this.currentPage = 1;
+            this.renderArticlesWithPagination(publishedArticles, articlesGrid);
         }
 
         // Article page
@@ -874,7 +1109,11 @@ const App = {
             const params = Utils.getUrlParams();
             const article = await DB.getArticleBySlug(params.slug);
             
-            if (article) {
+            // Only show if published (or no status - for backward compatibility)
+            const articleStatus = (article?.status || '').toLowerCase();
+            const isPublished = !articleStatus || articleStatus === 'published' || articleStatus === 'publish';
+            
+            if (article && isPublished) {
                 await DB.incrementViews(article.id);
                 ArticleRenderer.renderFullArticle(article, articleContent);
             } else {
@@ -888,10 +1127,139 @@ const App = {
             }
         }
 
-        // Popular posts sidebar
+        // Popular posts sidebar (only published)
         if (popularPosts) {
-            ArticleRenderer.renderPopularPosts(articles, popularPosts);
+            ArticleRenderer.renderPopularPosts(publishedArticles, popularPosts);
         }
+    },
+
+    // Render trending articles
+    renderTrending(articles, container) {
+        if (!container) return;
+        
+        // Sort by views and get top 4
+        const trending = [...articles]
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .slice(0, 4);
+        
+        if (trending.length === 0) {
+            container.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center;">No trending articles yet.</p>';
+            return;
+        }
+        
+        let html = '';
+        trending.forEach((article, index) => {
+            const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
+            html += `
+                <div class="trending-card" onclick="App.viewArticle('${article.slug}')">
+                    <div class="trending-card-image">
+                        <img src="${imageUrl}" alt="${article.title}" loading="lazy" onerror="this.src='${Utils.getPlaceholderImage(article.category)}'">
+                        <span class="trending-badge">#${index + 1} Trending</span>
+                    </div>
+                    <div class="trending-card-content">
+                        <div class="trending-card-category">${article.category}</div>
+                        <h3 class="trending-card-title">${article.title}</h3>
+                        <div class="trending-card-meta">
+                            <span>${Utils.formatDate(article.createdAt)}</span>
+                            <span class="trending-card-views">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                </svg>
+                                ${(article.views || 0).toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    },
+
+    // Render articles with pagination
+    renderArticlesWithPagination(articles, container) {
+        if (!container) return;
+        
+        const totalPages = Math.ceil(articles.length / this.articlesPerPage);
+        const startIndex = (this.currentPage - 1) * this.articlesPerPage;
+        const endIndex = startIndex + this.articlesPerPage;
+        const paginatedArticles = articles.slice(startIndex, endIndex);
+        
+        // Render articles
+        ArticleRenderer.renderGrid(paginatedArticles, container);
+        
+        // Render pagination
+        this.renderPagination(totalPages);
+    },
+
+    // Render pagination controls
+    renderPagination(totalPages) {
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer || totalPages <= 1) {
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Previous button
+        html += `<button class="pagination-btn nav-btn ${this.currentPage === 1 ? 'disabled' : ''}" 
+                    onclick="App.goToPage(${this.currentPage - 1})" 
+                    ${this.currentPage === 1 ? 'disabled' : ''}>
+                    ‹ Prev
+                </button>`;
+        
+        // Page numbers
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        // First page
+        if (startPage > 1) {
+            html += `<button class="pagination-btn" onclick="App.goToPage(1)">1</button>`;
+            if (startPage > 2) {
+                html += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+        
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button class="pagination-btn ${i === this.currentPage ? 'active' : ''}" 
+                        onclick="App.goToPage(${i})">${i}</button>`;
+        }
+        
+        // Last page
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                html += `<span class="pagination-ellipsis">...</span>`;
+            }
+            html += `<button class="pagination-btn" onclick="App.goToPage(${totalPages})">${totalPages}</button>`;
+        }
+        
+        // Next button
+        html += `<button class="pagination-btn nav-btn ${this.currentPage === totalPages ? 'disabled' : ''}" 
+                    onclick="App.goToPage(${this.currentPage + 1})"
+                    ${this.currentPage === totalPages ? 'disabled' : ''}>
+                    Next ›
+                </button>`;
+        
+        paginationContainer.innerHTML = html;
+    },
+
+    // Go to specific page
+    goToPage(page) {
+        const totalPages = Math.ceil(this.allArticles.length / this.articlesPerPage);
+        if (page < 1 || page > totalPages) return;
+        
+        this.currentPage = page;
+        const articlesGrid = document.getElementById('articles-grid');
+        this.renderArticlesWithPagination(this.allArticles, articlesGrid);
+        
+        // Scroll to articles section
+        document.getElementById('articles').scrollIntoView({ behavior: 'smooth' });
     },
 
     // Setup category filters
@@ -907,15 +1275,24 @@ const App = {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Filter articles
+                // Filter articles (only published)
                 const category = btn.dataset.category;
                 let articles = await DB.getArticles();
+                
+                // Filter to only published articles
+                articles = articles.filter(a => {
+                    const status = (a.status || '').toLowerCase();
+                    return !status || status === 'published' || status === 'publish';
+                });
                 
                 if (category !== 'all') {
                     articles = articles.filter(a => a.category === category);
                 }
 
-                ArticleRenderer.renderGrid(articles, articlesGrid);
+                // Update allArticles and reset pagination
+                this.allArticles = articles;
+                this.currentPage = 1;
+                this.renderArticlesWithPagination(articles, articlesGrid);
             });
         });
     },
