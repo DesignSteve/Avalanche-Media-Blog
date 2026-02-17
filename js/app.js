@@ -1152,34 +1152,13 @@ const App = {
         }
     },
 
-    // Render trending articles - combines views + recency for dynamic content
+    // Render trending articles - shows NEWEST articles (most recent first)
     renderTrending(articles, container) {
         if (!container) return;
         
-        // Calculate trending score: views + recency bonus
-        const now = new Date();
-        const scoredArticles = articles.map(article => {
-            const views = article.views || 0;
-            const createdAt = new Date(article.createdAt);
-            const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
-            
-            // Recency bonus: newer articles get higher score
-            // Articles less than 7 days old get bonus points
-            let recencyBonus = 0;
-            if (ageInDays < 1) recencyBonus = 100;      // Less than 1 day
-            else if (ageInDays < 3) recencyBonus = 50;  // 1-3 days
-            else if (ageInDays < 7) recencyBonus = 25;  // 3-7 days
-            else if (ageInDays < 14) recencyBonus = 10; // 1-2 weeks
-            
-            // Trending score = views + recency bonus
-            const trendingScore = views + recencyBonus;
-            
-            return { ...article, trendingScore };
-        });
-        
-        // Sort by trending score and get top 4
-        const trending = scoredArticles
-            .sort((a, b) => b.trendingScore - a.trendingScore)
+        // Sort by date (newest first) and get top 4
+        const trending = [...articles]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 4);
         
         if (trending.length === 0) {
@@ -1190,8 +1169,18 @@ const App = {
         let html = '';
         trending.forEach((article, index) => {
             const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
-            const isNew = ((new Date() - new Date(article.createdAt)) / (1000 * 60 * 60 * 24)) < 3;
-            const badgeText = isNew ? '🆕 New' : `#${index + 1} Trending`;
+            
+            // Check how new the article is
+            const ageInHours = (new Date() - new Date(article.createdAt)) / (1000 * 60 * 60);
+            let badgeText;
+            
+            if (ageInHours < 24) {
+                badgeText = '🔴 JUST IN';
+            } else if (ageInHours < 72) {
+                badgeText = '🆕 NEW';
+            } else {
+                badgeText = '🔥 TRENDING';
+            }
             
             html += `
                 <a href="article.html?slug=${article.slug}" class="trending-card">
