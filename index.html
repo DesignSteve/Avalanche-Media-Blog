@@ -274,6 +274,67 @@
             padding: 0 5px;
         }
         
+        /* Greeting Bar Styles */
+        .greeting-bar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .greeting-bar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .greeting-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .greeting-text .greeting-icon {
+            font-size: 1.2rem;
+        }
+        
+        .greeting-text .greeting-message {
+            font-weight: 500;
+        }
+        
+        .greeting-text .greeting-message span {
+            color: var(--gold);
+        }
+        
+        .clock-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--gold);
+        }
+        
+        .clock-display svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .greeting-bar .container {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .greeting-text, .clock-display {
+                font-size: 0.8rem;
+            }
+        }
+        
         @media (max-width: 768px) {
             .trending-title {
                 font-size: 1.4rem;
@@ -296,6 +357,23 @@
     </style>
 </head>
 <body>
+    <!-- Greeting Bar with Real-Time Clock -->
+    <div class="greeting-bar">
+        <div class="container">
+            <div class="greeting-text">
+                <span class="greeting-icon" id="greeting-icon">🌅</span>
+                <span class="greeting-message" id="greeting-message">Good Morning, <span>Welcome to Avalanche Media</span></span>
+            </div>
+            <div class="clock-display">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span id="live-clock">00:00:00</span>
+            </div>
+        </div>
+    </div>
+    
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -710,6 +788,57 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSettingsFromFirebase();
         });
+    </script>
+    
+    <!-- Real-Time Clock and Greeting Script -->
+    <script>
+        function updateClockAndGreeting() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // Format time in 24-hour format with leading zeros
+            const timeString = 
+                String(hours).padStart(2, '0') + ':' + 
+                String(minutes).padStart(2, '0') + ':' + 
+                String(seconds).padStart(2, '0');
+            
+            // Update clock display
+            const clockElement = document.getElementById('live-clock');
+            if (clockElement) {
+                clockElement.textContent = timeString;
+            }
+            
+            // Update greeting based on time of day
+            const greetingIcon = document.getElementById('greeting-icon');
+            const greetingMessage = document.getElementById('greeting-message');
+            
+            let greeting, icon;
+            
+            if (hours >= 5 && hours < 12) {
+                greeting = 'Good Morning';
+                icon = '🌅';
+            } else if (hours >= 12 && hours < 17) {
+                greeting = 'Good Afternoon';
+                icon = '☀️';
+            } else if (hours >= 17 && hours < 21) {
+                greeting = 'Good Evening';
+                icon = '🌆';
+            } else {
+                greeting = 'Good Night';
+                icon = '🌙';
+            }
+            
+            if (greetingIcon) greetingIcon.textContent = icon;
+            if (greetingMessage) {
+                greetingMessage.innerHTML = greeting + ', <span>Welcome to Avalanche Media</span>';
+            }
+        }
+        
+        // Update immediately and then every second
+        updateClockAndGreeting();
+        setInterval(updateClockAndGreeting, 1000);
     </script>
     
     <!-- Service Worker Registration -->
