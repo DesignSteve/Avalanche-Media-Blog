@@ -1081,71 +1081,94 @@ const App = {
         const popularPosts = document.getElementById('popular-posts');
         const trendingGrid = document.getElementById('trending-grid');
 
-        let articles = await DB.getArticles();
-        
-        // Filter to only show published articles on public pages
-        // Show articles that are: published, have no status (old articles), or status is empty/undefined
-        const publishedArticles = articles.filter(a => {
-            const status = (a.status || '').toLowerCase();
-            return !status || status === 'published' || status === 'publish';
-        });
-        
-        // Store all articles for pagination
-        this.allArticles = publishedArticles;
-
-        // Home page - Trending section (top 4 by views)
-        if (trendingGrid) {
-            this.renderTrending(publishedArticles, trendingGrid);
-        }
-
-        // Home page - articles grid with pagination (only published)
-        if (articlesGrid) {
-            this.currentPage = 1;
-            this.renderArticlesWithPagination(publishedArticles, articlesGrid);
-        }
-
-        // Article page
-        if (articleContent) {
-            const params = Utils.getUrlParams();
-            const article = await DB.getArticleBySlug(params.slug);
+        try {
+            let articles = await DB.getArticles();
             
-            // Only show if published (or no status - for backward compatibility)
-            const articleStatus = (article?.status || '').toLowerCase();
-            const isPublished = !articleStatus || articleStatus === 'published' || articleStatus === 'publish';
+            // Filter to only show published articles on public pages
+            // Show articles that are: published, have no status (old articles), or status is empty/undefined
+            const publishedArticles = articles.filter(a => {
+                const status = (a.status || '').toLowerCase();
+                return !status || status === 'published' || status === 'publish';
+            });
             
-            if (article && isPublished) {
-                await DB.incrementViews(article.id);
-                ArticleRenderer.renderFullArticle(article, articleContent);
-            } else {
-                articleContent.innerHTML = `
-                    <div style="text-align: center; padding: 100px 20px;">
-                        <h2>Article Not Found</h2>
-                        <p style="color: var(--text-muted); margin: 20px 0;">The article you're looking for doesn't exist.</p>
-                        <a href="index.html" class="btn">Back to Home</a>
-                    </div>
-                `;
+            // Store all articles for pagination
+            this.allArticles = publishedArticles;
+
+            // Home page - Trending section (top 4 by views + recency)
+            if (trendingGrid) {
+                this.renderTrending(publishedArticles, trendingGrid);
             }
-        }
 
-        // Popular posts sidebar (only published)
-        if (popularPosts) {
-            ArticleRenderer.renderPopularPosts(publishedArticles, popularPosts);
+            // Home page - articles grid with pagination (only published)
+            if (articlesGrid) {
+                this.currentPage = 1;
+                this.renderArticlesWithPagination(publishedArticles, articlesGrid);
+            }
+
+            // Article page
+            if (articleContent) {
+                const params = Utils.getUrlParams();
+                const article = await DB.getArticleBySlug(params.slug);
+                
+                // Only show if published (or no status - for backward compatibility)
+                const articleStatus = (article?.status || '').toLowerCase();
+                const isPublished = !articleStatus || articleStatus === 'published' || articleStatus === 'publish';
+                
+                if (article && isPublished) {
+                    await DB.incrementViews(article.id);
+                    ArticleRenderer.renderFullArticle(article, articleContent);
+                } else {
+                    articleContent.innerHTML = `
+                        <div style="text-align: center; padding: 100px 20px;">
+                            <h2>Article Not Found</h2>
+                            <p style="color: var(--text-muted); margin: 20px 0;">The article you're looking for doesn't exist.</p>
+                            <a href="index.html" class="btn">Back to Home</a>
+                        </div>
+                    `;
+                }
+            }
+
+            // Popular posts sidebar (only published)
+            if (popularPosts) {
+                ArticleRenderer.renderPopularPosts(publishedArticles, popularPosts);
+            }
+        } catch (error) {
+            console.error('Error loading content:', error);
+            // Show error message in trending grid if it exists
+            if (trendingGrid) {
+                trendingGrid.innerHTML = '<p style="color: rgba(255,255,255,0.6); text-align: center;">Unable to load trending articles.</p>';
+            }
         }
     },
 
-    // Render trending articles
+    // Render trending articles - combines views + recency for dynamic content
     renderTrending(articles, container) {
         if (!container) return;
         
-        // Sort by views first, then by date (newest) if no views
-        const trending = [...articles]
-            .sort((a, b) => {
-                // First sort by views
-                const viewsDiff = (b.views || 0) - (a.views || 0);
-                if (viewsDiff !== 0) return viewsDiff;
-                // If same views, sort by date (newest first)
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            })
+        // Calculate trending score: views + recency bonus
+        const now = new Date();
+        const scoredArticles = articles.map(article => {
+            const views = article.views || 0;
+            const createdAt = new Date(article.createdAt);
+            const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+            
+            // Recency bonus: newer articles get higher score
+            // Articles less than 7 days old get bonus points
+            let recencyBonus = 0;
+            if (ageInDays < 1) recencyBonus = 100;      // Less than 1 day
+            else if (ageInDays < 3) recencyBonus = 50;  // 1-3 days
+            else if (ageInDays < 7) recencyBonus = 25;  // 3-7 days
+            else if (ageInDays < 14) recencyBonus = 10; // 1-2 weeks
+            
+            // Trending score = views + recency bonus
+            const trendingScore = views + recencyBonus;
+            
+            return { ...article, trendingScore };
+        });
+        
+        // Sort by trending score and get top 4
+        const trending = scoredArticles
+            .sort((a, b) => b.trendingScore - a.trendingScore)
             .slice(0, 4);
         
         if (trending.length === 0) {
@@ -1156,11 +1179,14 @@ const App = {
         let html = '';
         trending.forEach((article, index) => {
             const imageUrl = article.image || Utils.getPlaceholderImage(article.category);
+            const isNew = ((new Date() - new Date(article.createdAt)) / (1000 * 60 * 60 * 24)) < 3;
+            const badgeText = isNew ? '🆕 New' : `#${index + 1} Trending`;
+            
             html += `
                 <a href="article.html?slug=${article.slug}" class="trending-card">
                     <div class="trending-card-image">
                         <img src="${imageUrl}" alt="${article.title}" loading="lazy" onerror="this.src='${Utils.getPlaceholderImage(article.category)}'">
-                        <span class="trending-badge">#${index + 1} Trending</span>
+                        <span class="trending-badge">${badgeText}</span>
                     </div>
                     <div class="trending-card-content">
                         <div class="trending-card-category">${article.category || 'News'}</div>
