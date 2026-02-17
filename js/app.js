@@ -679,21 +679,32 @@ const Admin = {
         const statViews = document.getElementById('stat-views');
         if (statViews) statViews.textContent = totalViews.toLocaleString();
         
-        // This month's articles
+        // This month's views - calculate from articles created/viewed this month
         const now = new Date();
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
         
-        // Count articles created this month
-        const articlesThisMonth = articles.filter(article => {
+        // Calculate views from articles created this month
+        let monthlyViews = 0;
+        articles.forEach(article => {
             const articleDate = new Date(article.createdAt);
-            return articleDate.getMonth() === thisMonth && articleDate.getFullYear() === thisYear;
-        }).length;
+            // Count views from articles created this month
+            if (articleDate.getMonth() === thisMonth && articleDate.getFullYear() === thisYear) {
+                monthlyViews += (article.views || 0);
+            }
+        });
         
-        // Get monthly views from localStorage
-        const monthKey = `${thisYear}-${thisMonth}`;
-        const monthlyData = JSON.parse(localStorage.getItem('monthlyViews') || '{}');
-        const monthlyViews = monthlyData[monthKey] || 0;
+        // If no views this month, show total recent views (last 30 days estimate)
+        if (monthlyViews === 0) {
+            // Estimate: sum views of articles created in last 30 days
+            const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+            articles.forEach(article => {
+                const articleDate = new Date(article.createdAt);
+                if (articleDate >= thirtyDaysAgo) {
+                    monthlyViews += (article.views || 0);
+                }
+            });
+        }
         
         const statMonth = document.getElementById('stat-month');
         if (statMonth) statMonth.textContent = monthlyViews.toLocaleString();
