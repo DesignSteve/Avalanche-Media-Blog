@@ -276,11 +276,13 @@
         
         /* Greeting Bar Styles */
         .greeting-bar {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            padding: 8px 0;
+            background: #000000;
+            color: #ffffff;
+            padding: 10px 0;
             font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid var(--gold);
+            position: relative;
+            z-index: 1000;
         }
         
         .greeting-bar .container {
@@ -295,6 +297,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            color: #ffffff;
         }
         
         .greeting-text .greeting-icon {
